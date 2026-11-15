@@ -1,0 +1,25 @@
+import type { MetadataRoute } from "next";
+import { siteUrl } from "@/content/site";
+
+const paths = [
+  "/",
+  "/memberships",
+  "/events",
+  "/book",
+  "/about",
+  "/gallery",
+  "/seniors-homebound",
+  "/special-needs-sensory",
+  "/veterans-outreach",
+  "/unhoused-dignity",
+  "/youth-mentorship",
+  "/impact-partnerships",
+];
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  const base = siteUrl();
+  return paths.map((path) => ({
+    url: `${base}${path}`,
+    lastModified: "2026-11-15",
+  }));
+}
