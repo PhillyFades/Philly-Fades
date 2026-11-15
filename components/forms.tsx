@@ -4,7 +4,7 @@ import { useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import { eventTypes } from "@/content/events";
 import { defaultPartnerIntro, partnerRequests } from "@/content/programs";
-import { demographics, eligibilityAttestation, referrerRoles, site } from "@/content/site";
+import { demographics, referrerRoles, site } from "@/content/site";
 import { feePlans, formatDollars, memberships } from "@/content/pricing";
 import {
   submitBooking,
@@ -182,17 +182,12 @@ function EligibilityBox({ error }: { error?: string }) {
           className="mt-1 h-5 w-5 shrink-0 accent-sun"
           required
           aria-invalid={error ? true : undefined}
-          aria-describedby={error ? "eligibilityConfirmed-error" : "eligibility-help"}
+          aria-describedby={error ? "eligibilityConfirmed-error" : undefined}
         />
         <span>
-          I confirm the person receiving this in-home visit qualifies under Pennsylvania’s statutory
-          exemptions: illness, physical disability, a sensory or developmental need, confinement, or
-          advanced age that prevents travel to a shop.
+          The person receiving this service is homebound, ill, or otherwise unable to travel to a shop.
         </span>
       </label>
-      <p id="eligibility-help" className="mt-2 pl-8 text-sm leading-6 text-muted">
-        {eligibilityAttestation}
-      </p>
       {error ? (
         <p id="eligibilityConfirmed-error" className="mt-2 pl-8 text-sm text-[#ffb4b4]">
           {error}
@@ -450,7 +445,7 @@ export function EventForm({ configured }: { configured: boolean }) {
         <textarea {...inputProps("notes", errors.notes)} rows={4} placeholder="Access, timing, or anything Mike should know before he calls." />
       </Field>
       <p className="text-sm leading-6 text-muted">
-        Mike confirms the date, the crew, and the setup before anything is held. Licensed and fully compliant with PA State Board rules for out-of-shop services.
+        Mike confirms the date, the crew, and the setup before anything is held.
       </p>
       <button type="submit" disabled={pending} className="inline-flex min-h-12 items-center justify-center rounded-full bg-sun px-6 font-semibold text-ink disabled:opacity-60">
         {pending ? "Sending…" : "Request a 4-hour slot"}

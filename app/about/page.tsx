@@ -1,12 +1,11 @@
 import Image from "next/image";
-import { ComplianceStatement } from "@/components/Compliance";
 import { Button, Container, Eyebrow, Gold, PageHero } from "@/components/ui";
 import { site, van } from "@/content/site";
 import { pageMeta } from "@/lib/seo";
 
 export const metadata = pageMeta(
   "Mike Webb Jr. and Barbers on Broad",
-  "Meet Mike Webb Jr., the barber behind Buzz Boxx PXV. A public-private partnership with Barbers on Broad on North Broad Street in ZIP 19121, wheelchair accessible and PA State Board compliant.",
+  "Meet Mike Webb Jr., the barber behind Buzz Boxx PXV. House calls and the mobile van, with Barbers on Broad on North Broad Street in ZIP 19121 as home base. The host shop is wheelchair accessible.",
   "/about",
 );
 
@@ -57,27 +56,18 @@ export default function AboutPage() {
         </Container>
       </section>
       <section className="border-y border-white/10 bg-card py-16">
-        <Container className="grid gap-10 lg:grid-cols-2">
-          <div>
-            <Eyebrow>Host shop</Eyebrow>
-            <h2 className="mt-3 font-display text-4xl leading-none">
-              A public-private partnership with <Gold>Barbers on Broad</Gold>
-            </h2>
-            <p className="mt-5 text-lg leading-[1.6] text-muted">
-              Services are dispatched from {site.dispatchShop}, owned by {site.dispatchOwner}, at {site.dispatchAddress}. The shop sits in ZIP 19121, on the North Broad Street corridor Mike’s work is rooted in. The host shop is wheelchair accessible, and in-shop guests can book an ADA-friendly chair there. House calls are the traveling half of the same practice.
-            </p>
-            <div className="mt-6">
-              <Button href={site.inShopUrl} external variant="ghost">
-                {site.inShopLabel}
-              </Button>
-            </div>
-          </div>
-          <div>
-            <Eyebrow>49 Pa. Code § 3.61</Eyebrow>
-            <h2 className="mt-3 font-display text-4xl leading-none text-white">Compliance</h2>
-            <div className="mt-5">
-              <ComplianceStatement />
-            </div>
+        <Container>
+          <Eyebrow>Host shop</Eyebrow>
+          <h2 className="mt-3 max-w-3xl font-display text-4xl leading-none">
+            A public-private partnership with <Gold>Barbers on Broad</Gold>
+          </h2>
+          <p className="mt-5 max-w-2xl text-lg leading-[1.6] text-muted">
+            Services are dispatched from {site.dispatchShop}, owned by {site.dispatchOwner}, at {site.dispatchAddress}. The shop sits in ZIP 19121, on the North Broad Street corridor Mike’s work is rooted in. The host shop is wheelchair accessible, and in-shop guests can book an ADA-friendly chair there. House calls are the traveling half of the same practice.
+          </p>
+          <div className="mt-6">
+            <Button href={site.inShopUrl} external variant="ghost">
+              {site.inShopLabel}
+            </Button>
           </div>
         </Container>
       </section>

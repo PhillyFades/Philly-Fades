@@ -7,7 +7,7 @@ import { pageMeta } from "@/lib/seo";
 
 export const metadata = pageMeta(
   "Book a house call haircut",
-  "Request a mobile barber house call with Mike Webb Jr. in Philadelphia, Montgomery, or Chester County. In-home visits require a Pennsylvania eligibility confirmation and are logged with Barbers on Broad.",
+  "Request a mobile barber house call with Mike Webb Jr. in Philadelphia, Montgomery, or Chester County. Tell us who the cut is for and where to come.",
   "/book",
 );
 
@@ -15,7 +15,7 @@ export default function BookPage() {
   return (
     <>
       <PageHero eyebrow="House calls" title={<>Request the chair at <Gold>your</Gold> address.</>}>
-        A traveling cut for someone who qualifies to be seen outside a shop. Case managers, nurses, VA coordinators, and family caregivers can book on behalf of the person receiving the cut and pay by invoice or voucher.
+        A traveling cut at home or at a building. Case managers, nurses, VA coordinators, and family caregivers can book on behalf of the person receiving the cut and pay by invoice or voucher.
       </PageHero>
       <section className="py-16">
         <Container className="grid gap-8 lg:grid-cols-[1fr_0.8fr]">

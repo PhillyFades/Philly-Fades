@@ -63,8 +63,7 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-white/10">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-5 py-6 md:flex-row md:items-center md:justify-between">
-          <p className="max-w-3xl text-sm leading-6 text-gold">{site.complianceBadge}</p>
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-5 py-6 md:flex-row md:items-center md:justify-end">
           <a
             href={site.inShopUrl}
             target="_blank"

@@ -1,6 +1,6 @@
 # Buzz Boxx PXV
 
-Premium traveling-barber site for **Philly Fades Haircuts LLC d/b/a Buzz Boxx PXV**, led by Mike Webb Jr. House calls and memberships are the product. Community and corporate events are next. Every out-of-shop visit is dispatched from **Barbers on Broad, 1220 N Broad St Ste 3, Philadelphia, PA 19121**.
+Premium traveling-barber site for **Philly Fades Haircuts LLC d/b/a Buzz Boxx PXV**, led by Mike Webb Jr. House calls and memberships are the product. Community and corporate events are next. Every house call is dispatched from **Barbers on Broad, 1220 N Broad St Ste 3, Philadelphia, PA 19121**.
 
 Next.js (App Router) and Tailwind CSS. Deploy on Vercel with no extra config. Supabase stores bookings (the dispatch log), membership signups, event inquiries, community referrals, and institutional vendor intake. Stripe is not connected.
 

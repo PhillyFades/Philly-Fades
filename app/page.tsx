@@ -224,8 +224,7 @@ export default function HomePage() {
             Officially dispatched via <Gold>Barbers on Broad</Gold>.
           </h2>
           <p className="mt-5 max-w-2xl text-lg leading-[1.6] text-white/85">
-            {site.dispatchAddress}. Wheelchair-accessible host shop. PA State Board compliant under
-            49 Pa. Code § 3.61. In-shop chairs book separately.
+            {site.dispatchAddress}. Wheelchair-accessible host shop. In-shop chairs book separately.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button href="/book">Request a traveling cut</Button>

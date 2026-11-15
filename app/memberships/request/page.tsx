@@ -6,7 +6,7 @@ import { pageMeta } from "@/lib/seo";
 
 export const metadata = pageMeta(
   "Request a membership",
-  "Request a Buzz Boxx PXV house-call membership. Choose The Lineup, The Rotation, or The Residence. In-home plans require the Pennsylvania eligibility confirmation and are saved as pending payment.",
+  "Request a Buzz Boxx PXV house-call membership. Choose The Lineup, The Rotation, or The Residence. In-home plans ask you to confirm the person cannot travel to a shop, and are saved as pending payment.",
   "/memberships/request",
 );
 
@@ -14,7 +14,7 @@ export default function MembershipRequestPage() {
   return (
     <>
       <PageHero eyebrow="Memberships" title={<>Request a <Gold>membership</Gold>.</>}>
-        House-call memberships use the same Pennsylvania eligibility rule as a single visit. Choose a plan, or arrive here from a plan card and that plan is already selected. Payment stays pending until Stripe is connected.
+        House-call memberships ask the same question as a single visit: the person cannot travel to a shop. Choose a plan, or arrive here from a plan card and that plan is already selected. Payment stays pending until Stripe is connected.
       </PageHero>
       <section className="py-16">
         <Container>

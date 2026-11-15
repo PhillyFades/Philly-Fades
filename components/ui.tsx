@@ -146,7 +146,7 @@ export function PageHero({
 export function DispatchNote() {
   return (
     <p className="rounded-2xl border border-white/10 bg-card px-4 py-3 text-sm leading-6 text-muted">
-      {`Officially dispatched via Barbers on Broad. Wheelchair-accessible host shop at 1220 N Broad St Ste 3, Philadelphia, PA 19121. House calls follow 49 Pa. Code § 3.61.`}
+      Officially dispatched via Barbers on Broad. Wheelchair-accessible host shop at 1220 N Broad St Ste 3, Philadelphia, PA 19121. In-shop chairs book separately.
     </p>
   );
 }

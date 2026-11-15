@@ -16,8 +16,6 @@ export const site = {
   dispatchShop: "Barbers on Broad",
   dispatchOwner: "Ruben",
   dispatchAddress: "1220 N Broad St Ste 3, Philadelphia, PA 19121",
-  complianceBadge:
-    "Officially Dispatched via Barbers on Broad • 1220 N Broad St Ste 3, Philadelphia, PA 19121 • PA State Board Compliant.",
   cancellation:
     "Cancel or reschedule at least 24 hours before the appointment. A missed visit, or a cancellation inside 24 hours, is charged in full for the service that was booked.",
   counties: ["Philadelphia", "Montgomery", "Chester"] as const,
@@ -64,7 +62,7 @@ export const van = {
 } as const;
 
 export const eligibilityAttestation =
-  "The person receiving this in-home visit qualifies for out-of-shop barbering because of illness, physical disability, a sensory or developmental need, confinement, or advanced age that prevents travel to a licensed shop. Pennsylvania’s Barbers’ License Law allows a sponsored barber to serve someone at a residence or in an institution in cases of sickness, incapacitation, confinement, and other emergencies.";
+  "The person receiving this service is homebound, ill, or otherwise unable to travel to a shop.";
 
 export const nav = [
   { href: "/memberships", label: "Memberships" },
@@ -91,8 +89,8 @@ export const howItWorks = [
   },
   {
     step: "02",
-    title: "Confirm eligibility",
-    body: "In-home cuts follow Pennsylvania’s out-of-shop rule. The person receiving the cut must qualify because travel to a shop is not realistic.",
+    title: "Confirm the visit",
+    body: "For a house call, confirm the person is homebound, ill, or otherwise unable to travel to a shop.",
   },
   {
     step: "03",
@@ -102,6 +100,6 @@ export const howItWorks = [
   {
     step: "04",
     title: "The shop logs it",
-    body: "Every house call is written into the dispatch log for Barbers on Broad, the record inspectors can ask to see, and for anonymized grant counts.",
+    body: "Every house call is written down for Barbers on Broad, along with a count that can be shared without anyone’s name.",
   },
 ] as const;

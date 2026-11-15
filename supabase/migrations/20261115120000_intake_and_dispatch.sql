@@ -1,6 +1,5 @@
 -- Buzz Boxx PXV intake tables.
--- bookings is the dispatch log for out-of-shop visits sponsored by
--- Barbers on Broad (49 Pa. Code § 3.61).
+-- bookings is the dispatch log for house calls sponsored by Barbers on Broad.
 --
 -- Access model: anonymous and authenticated users may INSERT and may not
 -- read, update, or delete. The service role (server actions only) bypasses

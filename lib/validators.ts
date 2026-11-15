@@ -169,7 +169,7 @@ export function validateBooking(raw: unknown): Ok<BookingInput> | Err {
   }
   if (!feeIds.has(feePlan)) errors.feePlan = "Choose a plan.";
   if (!checked(data.eligibilityConfirmed)) {
-    errors.eligibilityConfirmed = "In-home visits require the Pennsylvania eligibility confirmation.";
+    errors.eligibilityConfirmed = "Confirm that the person cannot travel to a shop.";
   }
   if (bookingOnBehalf) {
     if (referrerName.length < 2) errors.referrerName = "Enter the referrer’s name.";
@@ -227,7 +227,7 @@ export function validateMembership(raw: unknown): Ok<MembershipInput> | Err {
   if (!tierIds.has(tierId)) errors.tierId = "Choose a membership.";
   if (!demographicIds.has(demographicCategory)) errors.demographicCategory = "Choose a category.";
   if (!checked(data.eligibilityConfirmed)) {
-    errors.eligibilityConfirmed = "House-call memberships require the eligibility confirmation.";
+    errors.eligibilityConfirmed = "Confirm that the person cannot travel to a shop.";
   }
 
   if (Object.keys(errors).length) return { ok: false, fieldErrors: errors };

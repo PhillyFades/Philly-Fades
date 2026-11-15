@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ComplianceStatement } from "@/components/Compliance";
 import { Button, Container, Eyebrow, Gold, IconTile, PageHero, Section } from "@/components/ui";
 import { gallery } from "@/content/gallery";
 import { programCards } from "@/content/programs";
@@ -62,24 +61,6 @@ const gains = [
   { title: "Easy scheduling", body: "One request from the person who already manages the day." },
   { title: "Mobile setup", body: "No one has to cross the city to sit in a lobby." },
   { title: "Flexible pricing", body: "A household can book a visit, or a partner can sponsor the chairs." },
-];
-
-const funderDocs = [
-  {
-    href: "/docs/program-one-pager.pdf",
-    title: "Program one-pager",
-    note: "A short overview. Ask for the current file before you attach it to a grant.",
-  },
-  {
-    href: "/docs/licensing-placeholder.pdf",
-    title: "Licensing packet",
-    note: "Ask Mike for the shop license and his barber license. This file is a stand-in.",
-  },
-  {
-    href: "/docs/certificate-of-insurance-placeholder.pdf",
-    title: "Certificate of insurance",
-    note: "Ask for the current certificate. This file is a stand-in.",
-  },
 ];
 
 export default function ProgramsPage() {
@@ -220,35 +201,8 @@ export default function ProgramsPage() {
               See events
             </Button>
           </div>
-          <p className="mt-8 max-w-2xl text-sm leading-6 text-gold">
-            Licensed and fully compliant with PA State Board rules for out-of-shop services.
-          </p>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-white/80">{site.complianceBadge}</p>
         </Container>
       </section>
-
-      <Section>
-        <details className="rounded-2xl border border-white/10 bg-card p-6 md:p-8">
-          <summary className="cursor-pointer font-display text-2xl leading-none text-white">
-            For funders & compliance
-          </summary>
-          <div className="mt-6 max-w-3xl space-y-6">
-            <p className="text-base leading-7 text-muted">
-              The short version: Pennsylvania licenses the shop and the barber, not a van. {site.barber} is sponsored by {site.dispatchShop}. Tools come from that shop, the visit is written in the shop’s log, and sanitation matches a cut inside the shop. Visit counts for a grant can be shared without anyone’s name.
-            </p>
-            <ComplianceStatement />
-            <div className="grid gap-4 md:grid-cols-3">
-              {funderDocs.map((doc) => (
-                <a key={doc.href} href={doc.href} className="rounded-2xl border border-white/10 p-4 hover:border-gold/70">
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-gold">Download</p>
-                  <p className="mt-2 font-display text-xl leading-none">{doc.title}</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">{doc.note}</p>
-                </a>
-              ))}
-            </div>
-          </div>
-        </details>
-      </Section>
     </>
   );
 }

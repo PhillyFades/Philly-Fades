@@ -26,7 +26,7 @@ export const programs = {
       },
       {
         heading: "How a caregiver books",
-        body: "Use the house-call form and turn on booking on behalf of someone. Name the organization if a facility is paying by invoice or voucher. The eligibility checkbox is required, because advanced age or illness that prevents travel to a shop is what Pennsylvania allows for an out-of-shop visit.",
+        body: "Use the house-call form and turn on booking on behalf of someone. Name the organization if a facility is paying by invoice or voucher. Confirm that the person is homebound, ill, or otherwise unable to get to a shop.",
       },
     ],
     bookDemographic: "senior_homebound",
@@ -57,7 +57,7 @@ export const programs = {
       },
       {
         heading: "Who this is for",
-        body: "Autistic clients, people with sensory processing differences, and anyone whose disability makes a shop floor unrealistic. The statutory door is incapacitation that keeps someone from traveling to a licensed shop. The form asks a caregiver or the person themselves to confirm that.",
+        body: "Autistic clients, people with sensory processing differences, and anyone whose disability makes a shop floor unrealistic. A caregiver, or the person themselves, confirms they cannot travel to a shop.",
       },
     ],
     bookDemographic: "sensory_developmental",
@@ -79,7 +79,7 @@ export const programs = {
       "Trauma-informed pacing. Mike narrates the next step and keeps the cape loose if that matters.",
       "Job-readiness and interview cuts, including a beard shape that still feels like the person.",
       "Housing-transition readiness with VA and SSVF coordinators, billed by invoice or voucher.",
-      "The visit can happen at home or at a partner site that fits the out-of-shop rule.",
+      "The visit can happen at home or at a partner site.",
     ],
     sections: [
       {
@@ -110,7 +110,7 @@ export const programs = {
       "Pop-ups at shelters, food pantries, and behavioral health centers.",
       "Sponsor a Cut for neighbors who cannot pay.",
       "A sign-in that protects privacy and still gives partners a count.",
-      "Reviewed as an institutional out-of-shop visit under the sponsoring shop.",
+      "Mike brings the tools from Barbers on Broad and sets up where the site already is.",
     ],
     sections: [
       {
