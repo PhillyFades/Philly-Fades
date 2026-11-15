@@ -17,54 +17,27 @@ export default function HomePage() {
     <>
       <section className="relative flex min-h-[100svh] items-end overflow-hidden">
         <Image
-          src="/images/mike-work-06.webp"
-          alt="Low fade and beard finished by Mike Webb Jr."
+          src={van.src}
+          alt={van.alt}
           fill
           priority
-          className="object-cover"
+          className="object-cover object-[38%_center]"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/80 to-ink/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink from-10% via-ink/80 via-42% to-ink/15" />
         <Container className="relative pb-16 pt-32">
           <Eyebrow>Traveling barber · Philadelphia</Eyebrow>
           <h1 className="mt-4 max-w-4xl font-display text-[clamp(3.2rem,8vw,6.4rem)] leading-[0.92] tracking-tight">
             We come to <Gold>you</Gold>.
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-[1.6] text-white/85">
-            Buzz Boxx PXV is {site.barber}’s house-call chair. A Philadelphia barber for memberships,
-            caregiver bookings, and community cuts across {site.serviceArea}. Officially dispatched
-            from {site.dispatchShop}.
+            Buzz Boxx PXV is {site.barber}’s house-call chair. The van parks outside, or the cut happens in the home. Memberships, caregiver bookings, and community cuts across {site.serviceArea}. Officially dispatched from {site.dispatchShop}.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button href="/book">Book a house call</Button>
             <Button href="/memberships" variant="ghost">
               See memberships
             </Button>
-          </div>
-        </Container>
-      </section>
-
-      <section className="relative min-h-[70svh] overflow-hidden border-y border-white/10">
-        <Image
-          src={van.src}
-          alt={van.alt}
-          fill
-          className="object-cover object-[38%_center]"
-          sizes="100vw"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/75 to-ink/25" />
-        <Container className="relative flex min-h-[70svh] items-end py-16">
-          <div className="max-w-xl">
-            <Eyebrow>The traveling chair</Eyebrow>
-            <h2 className="mt-3 font-display text-[clamp(2.2rem,5vw,3.8rem)] leading-[0.95]">
-              The van is the shop that <Gold>comes to you</Gold>.
-            </h2>
-            <p className="mt-5 text-lg leading-[1.6] text-white/85">
-              Side door open, chair inside. {site.barber} brings that setup to a home, a building, or an event. Four-hour event slots are booked with him directly.
-            </p>
-            <div className="mt-8">
-              <Button href="/events">See the van’s events</Button>
-            </div>
           </div>
         </Container>
       </section>
@@ -107,7 +80,7 @@ export default function HomePage() {
           The van can sit for one slot or several, back-to-back or overlapping. Barber count, setup, and price are worked out with Mike after the inquiry.
         </p>
         <div className="mt-8">
-          <Button href="/events">Plan an event</Button>
+          <Button href="/request?type=community-event">Plan an event</Button>
         </div>
       </Section>
 
@@ -191,7 +164,7 @@ export default function HomePage() {
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Button href="/programs">See all programs</Button>
-          <Button href="/partner" variant="ghost">
+          <Button href="/request" variant="ghost">
             Partner with us
           </Button>
         </div>

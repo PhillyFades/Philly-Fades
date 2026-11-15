@@ -1,5 +1,6 @@
-import Link from "next/link";
+import { Suspense } from "react";
 import { Logo } from "@/components/Logo";
+import { NavLink } from "@/components/NavLink";
 import { communityLinks, nav, site } from "@/content/site";
 
 export function Footer() {
@@ -30,35 +31,39 @@ export function Footer() {
         <div>
           <p className="text-[11px] uppercase tracking-[0.2em] text-gold">Visit</p>
           <ul className="mt-4 space-y-2">
-            {nav.map((item) => (
-              <li key={item.href}>
-                <Link href={item.href} className="text-sm text-white hover:text-sun">
-                  {item.label}
-                </Link>
+            <Suspense fallback={null}>
+              {nav.map((item) => (
+                <li key={item.href}>
+                  <NavLink href={item.href} variant="footer">
+                    {item.label}
+                  </NavLink>
+                </li>
+              ))}
+              <li>
+                <NavLink href="/book" variant="footer">
+                  Book a house call
+                </NavLink>
               </li>
-            ))}
-            <li>
-              <Link href="/book" className="text-sm text-white hover:text-sun">
-                Book a house call
-              </Link>
-            </li>
-            <li>
-              <Link href="/partner" className="text-sm text-white hover:text-sun">
-                Partner with us
-              </Link>
-            </li>
+              <li>
+                <NavLink href="/request" variant="footer">
+                  Partner with us
+                </NavLink>
+              </li>
+            </Suspense>
           </ul>
         </div>
         <div>
           <p className="text-[11px] uppercase tracking-[0.2em] text-gold">Community</p>
           <ul className="mt-4 space-y-2">
-            {communityLinks.map((item) => (
-              <li key={item.href}>
-                <Link href={item.href} className="text-sm text-white hover:text-sun">
-                  {item.label}
-                </Link>
-              </li>
-            ))}
+            <Suspense fallback={null}>
+              {communityLinks.map((item) => (
+                <li key={item.href}>
+                  <NavLink href={item.href} variant="footer">
+                    {item.label}
+                  </NavLink>
+                </li>
+              ))}
+            </Suspense>
           </ul>
         </div>
       </div>

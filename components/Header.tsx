@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/Logo";
+import { NavLink } from "@/components/NavLink";
 import { communityLinks, nav } from "@/content/site";
 
 export function Header() {
@@ -41,16 +42,13 @@ export function Header() {
         </Link>
 
         <nav className="hidden items-center gap-6 lg:flex" aria-label="Primary">
-          {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="text-sm text-white/90 hover:text-sun"
-              aria-current={pathname === item.href ? "page" : undefined}
-            >
-              {item.label}
-            </Link>
-          ))}
+          <Suspense fallback={null}>
+            {nav.map((item) => (
+              <NavLink key={item.href} href={item.href} variant="header">
+                {item.label}
+              </NavLink>
+            ))}
+          </Suspense>
         </nav>
 
         <div className="flex items-center gap-2">
@@ -80,20 +78,22 @@ export function Header() {
       {open ? (
         <nav id="mobile-nav" className="border-t border-white/10 px-5 py-6 lg:hidden" aria-label="Mobile">
           <div className="flex flex-col gap-4">
-            {nav.map((item) => (
-              <Link key={item.href} href={item.href} className="text-lg text-white">
-                {item.label}
-              </Link>
-            ))}
-            <p className="pt-2 text-[11px] uppercase tracking-[0.2em] text-gold">Community</p>
-            {communityLinks.map((item) => (
-              <Link key={item.href} href={item.href} className="text-base text-muted">
-                {item.label}
-              </Link>
-            ))}
-            <Link href="/partner" className="text-lg text-white">
-              Partner with us
-            </Link>
+            <Suspense fallback={null}>
+              {nav.map((item) => (
+                <NavLink key={item.href} href={item.href} variant="mobile">
+                  {item.label}
+                </NavLink>
+              ))}
+              <p className="pt-2 text-[11px] uppercase tracking-[0.2em] text-gold">Community</p>
+              {communityLinks.map((item) => (
+                <NavLink key={item.href} href={item.href} variant="mobile-sub">
+                  {item.label}
+                </NavLink>
+              ))}
+              <NavLink href="/request" variant="mobile">
+                Partner with us
+              </NavLink>
+            </Suspense>
             <Link
               href="/book"
               className="mt-2 inline-flex min-h-12 items-center justify-center rounded-full bg-sun px-5 font-semibold text-ink"

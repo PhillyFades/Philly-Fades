@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { Button, Container, Eyebrow, Gold } from "@/components/ui";
+import { requestPath } from "@/content/requests";
 
 export function ProgramView({
   eyebrow,
@@ -33,7 +34,7 @@ export function ProgramView({
   partnerIntro: string;
   children?: ReactNode;
 }) {
-  const partnerHref = `/partner?type=${partnerType}`;
+  const partnerHref = requestPath(partnerType);
   return (
     <>
       <section className="relative overflow-hidden border-b border-white/10 pt-32 pb-16">

@@ -1,10 +1,13 @@
 import Image from "next/image";
 import { Suspense } from "react";
-import { EventForm } from "@/components/forms";
+import { redirect } from "next/navigation";
+import { EventsHashRedirect } from "@/components/EventsHashRedirect";
+import { InstagramEmbed, InstagramScript } from "@/components/InstagramEmbed";
 import { Button, Container, Eyebrow, Gold, Section } from "@/components/ui";
-import { eventTypes, pastEventPlaceholders, upcomingEventPlaceholders } from "@/content/events";
+import { eventPartners, eventTypes, pastEvents } from "@/content/events";
+import { requestPath } from "@/content/requests";
+import { buzzBoxxInstagram } from "@/src/data/instagram";
 import { site, van } from "@/content/site";
-import { isIntakeConfigured } from "@/lib/supabase";
 import { pageMeta } from "@/lib/seo";
 
 export const metadata = pageMeta(
@@ -13,9 +16,27 @@ export const metadata = pageMeta(
   "/events",
 );
 
-export default function EventsPage() {
+async function EventsQueryRedirect({
+  searchParams,
+}: {
+  searchParams: Promise<{ type?: string }>;
+}) {
+  const { type } = await searchParams;
+  if (type) redirect(requestPath(type));
+  return null;
+}
+
+export default function EventsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ type?: string }>;
+}) {
   return (
     <>
+      <Suspense fallback={null}>
+        <EventsQueryRedirect searchParams={searchParams} />
+      </Suspense>
+      <EventsHashRedirect />
       <section className="relative flex min-h-[78svh] items-end overflow-hidden">
         <Image
           src={van.src}
@@ -35,7 +56,7 @@ export default function EventsPage() {
             Events are booked in 4-hour slots. Book one, or book several. Slots can run back-to-back for a full day, or overlap when a bigger crowd needs more than one chair at the same time.
           </p>
           <div className="mt-8">
-            <Button href="#request">Request a 4-hour slot</Button>
+            <Button href="/request?type=community-event">Request a 4-hour slot</Button>
           </div>
         </Container>
       </section>
@@ -50,30 +71,30 @@ export default function EventsPage() {
         </p>
       </Section>
 
-      <Section className="bg-[#111]">
+      <Section id="past-events" className="bg-[#111]">
         <Eyebrow>Past events</Eyebrow>
         <h2 className="mt-3 max-w-3xl font-display text-[clamp(2.2rem,5vw,3.8rem)] leading-[0.95]">
-          The work, before the <Gold>names</Gold> are filled in.
+          Days the van <Gold>already</Gold> worked.
         </h2>
-        <p className="mt-5 max-w-2xl text-lg leading-[1.6] text-muted">
-          Philly Fades described community cuts with senior communities and local support programs, and named BuzzitForward and Community Care Cuts. The old site did not list specific dates, venues, or clients. Those details go on the cards below when Mike adds them.
+        <p className="mt-5 max-w-2xl text-lg leading-[1.6] text-white">
+          Partners we{"'"}ve worked with: {eventPartners.join(", ")}.
         </p>
         <div className="mt-10 grid gap-6 lg:grid-cols-3">
-          {pastEventPlaceholders.map((item) => (
-            <article key={item.image} className="overflow-hidden rounded-2xl border border-dashed border-gold/50 bg-card">
-              <div className="relative aspect-[4/3]">
-                <Image src={item.image} alt={item.imageAlt} fill className="object-cover" sizes="(min-width: 1024px) 30vw, 100vw" />
-              </div>
+          {pastEvents.map((item) => (
+            <article key={item.url} className="overflow-hidden rounded-2xl border border-white/10 bg-card">
+              <InstagramEmbed url={item.url} />
               <div className="p-5">
-                <p className="text-[11px] uppercase tracking-[0.2em] text-gold">Placeholder · add later</p>
-                <h3 className="mt-3 font-display text-2xl leading-none">{item.title}</h3>
+                <h3 className="font-display text-2xl leading-none">{item.title}</h3>
                 <p className="mt-3 text-sm text-white">{item.when}</p>
                 <p className="mt-2 text-sm leading-6 text-muted">{item.detail}</p>
-                <p className="mt-3 text-sm leading-6 text-muted">{item.photoNote}</p>
+                <a href={item.url} target="_blank" rel="noreferrer" className="mt-4 inline-block text-sm text-sun hover:underline">
+                  View on Instagram
+                </a>
               </div>
             </article>
           ))}
         </div>
+        <InstagramScript />
       </Section>
 
       <Section>
@@ -82,18 +103,11 @@ export default function EventsPage() {
           New dates posted <Gold>soon</Gold>.
         </h2>
         <p className="mt-5 max-w-2xl text-lg leading-[1.6] text-muted">
-          New dates posted soon. The cards below are blanks for the next public dates.
+          New dates posted soon.{" "}
+          <a href={buzzBoxxInstagram} target="_blank" rel="noreferrer" className="text-sun hover:underline">
+            Follow @buzzboxxpxv
+          </a>
         </p>
-        <div className="mt-10 grid gap-5 md:grid-cols-2">
-          {upcomingEventPlaceholders.map((item, index) => (
-            <article key={index} className="rounded-2xl border border-dashed border-gold/50 bg-card p-6">
-              <p className="text-[11px] uppercase tracking-[0.2em] text-gold">Placeholder · add later</p>
-              <h3 className="mt-3 font-display text-2xl leading-none">{item.title}</h3>
-              <p className="mt-3 text-sm text-white">{item.when}</p>
-              <p className="mt-1 text-sm text-muted">{item.place}</p>
-            </article>
-          ))}
-        </div>
       </Section>
 
       <section className="border-y border-white/10">
@@ -115,7 +129,7 @@ export default function EventsPage() {
             <ul className="mt-8 space-y-3">
               {eventTypes.map((item) => (
                 <li key={item.id}>
-                  <a href={`/events?type=${item.id}#request`} className="group block rounded-2xl border border-white/10 px-4 py-3 hover:border-gold/70">
+                  <a href={requestPath(item.id)} className="group block rounded-2xl border border-white/10 px-4 py-3 hover:border-gold/70">
                     <span className="block font-display text-xl leading-none group-hover:text-sun">{item.name}</span>
                     <span className="mt-1 block text-sm leading-6 text-muted">{item.summary}</span>
                   </a>
@@ -124,22 +138,6 @@ export default function EventsPage() {
             </ul>
           </div>
         </div>
-      </section>
-
-      <section id="request" className="py-20">
-        <Container>
-          <div className="rounded-2xl border border-white/10 bg-card p-6 md:p-10">
-            <h2 className="font-display text-4xl leading-none">Request a 4-hour slot</h2>
-            <p className="mt-3 max-w-2xl text-base leading-7 text-muted">
-              Tell Mike the date, how many slots, and whether they should stack or overlap. He will call to plan the crew and the price.
-            </p>
-            <div className="mt-8">
-              <Suspense fallback={<p className="text-muted">Loading the form…</p>}>
-                <EventForm configured={isIntakeConfigured()} />
-              </Suspense>
-            </div>
-          </div>
-        </Container>
       </section>
     </>
   );

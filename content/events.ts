@@ -67,46 +67,30 @@ export function findEventType(id: string) {
   return eventTypes.find((item) => item.id === id) ?? null;
 }
 
-/**
- * The old Philly Fades site did not name specific past events, dates, or clients.
- * These cards are blanks for the client. Photos are Mike’s existing portfolio, not event documentation.
- */
-export const pastEventPlaceholders = [
+export const pastEvents = [
   {
-    title: "Event name: add later",
-    when: "Date: add later",
-    detail: "Client and story: add later. This card is a placeholder.",
-    image: "/images/mike-work-06.webp",
-    imageAlt: "A finished low fade in the chair from Mike Webb Jr.’s Philly Fades portfolio.",
-    photoNote: "Photo is from Mike Webb Jr.’s Philly Fades portfolio, not a documented event.",
+    title: "Back 2 Better Youth Haircut Session",
+    when: "Summer 2026",
+    detail: "Youth haircut session with the Buzz Boxx van, sponsored by C Mitch Pitch Sports Agency.",
+    url: "https://www.instagram.com/buzzboxxpxv/reel/DZuboJGhTh-/",
   },
   {
-    title: "Event name: add later",
-    when: "Date: add later",
-    detail: "Client and story: add later. This card is a placeholder.",
-    image: "/images/mike-work-02.webp",
-    imageAlt: "A tight skin fade with a short beard from Mike Webb Jr.’s Philly Fades portfolio.",
-    photoNote: "Photo is from Mike Webb Jr.’s Philly Fades portfolio, not a documented event.",
+    title: "Divine Insurance Group Free Haircuts",
+    when: "Oct 20, 2026",
+    detail:
+      "Triangle Village, 3701 Brown St, Philadelphia. Free full-service men's cuts and trims/eyebrow services for women, sponsored by Divine Insurance Group with the Back to Better campaign.",
+    url: "https://www.instagram.com/buzzboxxpxv/reel/DerXEJtvIIy/",
   },
   {
-    title: "Event name: add later",
-    when: "Date: add later",
-    detail: "Client and story: add later. This card is a placeholder.",
-    image: "/images/mike-work-01.webp",
-    imageAlt: "A textured crop with a mid fade from Mike Webb Jr.’s Philly Fades portfolio.",
-    photoNote: "Photo is from Mike Webb Jr.’s Philly Fades portfolio, not a documented event.",
+    title: "Street outreach in the van",
+    when: "Summer 2026",
+    detail: "Haircuts for neighbors experiencing homelessness.",
+    url: "https://www.instagram.com/buzzboxxpxv/reel/DZr1vJ6xDr5/",
   },
 ] as const;
 
-export const upcomingEventPlaceholders = [
-  {
-    title: "Event name: add later",
-    when: "Date: add later",
-    place: "Place: add later",
-  },
-  {
-    title: "Event name: add later",
-    when: "Date: add later",
-    place: "Place: add later",
-  },
+export const eventPartners = [
+  "C Mitch Pitch Sports Agency",
+  "Divine Insurance Group",
+  "Back to Better campaign",
 ] as const;

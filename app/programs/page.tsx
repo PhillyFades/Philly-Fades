@@ -123,7 +123,7 @@ export default function ProgramsPage() {
                   {program.serves}
                 </p>
                 <div className="mt-6">
-                  <Button href={program.href} variant={program.href === "/partner" ? "solid" : "ghost"}>
+                  <Button href={program.href} variant={program.href === "/request" ? "solid" : "ghost"}>
                     {program.linkLabel}
                   </Button>
                 </div>
@@ -196,7 +196,7 @@ export default function ProgramsPage() {
             Caregivers, case managers, and site leads can request a visit in a few minutes. Event organizers planning a larger day can look at community and corporate bookings too.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button href="/partner">Partner with us</Button>
+            <Button href="/request">Partner with us</Button>
             <Button href="/events" variant="ghost">
               See events
             </Button>

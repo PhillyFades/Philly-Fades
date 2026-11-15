@@ -84,7 +84,7 @@ export const programs = {
     sections: [
       {
         heading: "Coordinators book it",
-        body: "A VA coordinator, case manager, or family member can submit the request. Say who is paying. The person receiving the cut is still named on the dispatch log, and the demographic category is stored so a funder can see anonymized veteran visit counts later.",
+        body: "A VA coordinator, case manager, or family member can submit the request. Say who is paying. The person receiving the cut is still named on the dispatch log.",
       },
       {
         heading: "What the cut is for",
@@ -202,7 +202,7 @@ export const programCards = [
     linkLabel: "See this program",
   },
   {
-    href: "/partner",
+    href: "/request",
     name: "Partnerships",
     serves: "Senior facilities, shelters, schools, VA groups, case managers, nonprofits, and event organizers.",
     summary: "You bring the people and the room. Mike brings the chair. Tell us the building, and whether a sponsor is covering the visits.",

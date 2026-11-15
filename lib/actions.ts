@@ -1,6 +1,6 @@
 "use server";
 
-import { findEventType } from "@/content/events";
+import { findRequestKind } from "@/content/requests";
 import { findFeePlan, findMembership } from "@/content/pricing";
 import { eligibilityAttestation, site } from "@/content/site";
 import { startCheckout } from "@/lib/payments";
@@ -117,7 +117,10 @@ export async function submitMembership(raw: unknown): Promise<ActionResult> {
     return { ok: false, code: "validation", error: "Choose a membership.", fieldErrors: { tierId: "Choose a membership." } };
   }
 
-  const saved = await insertRow("membership_signups", {
+  const inVan = parsed.value.serviceLocation === "van";
+  const locationLine = inVan ? "Service location: In the van" : "Service location: In my home";
+  const householdNotes = [locationLine, parsed.value.householdNotes].filter(Boolean).join("\n\n");
+  const shared = {
     full_name: parsed.value.fullName,
     email: parsed.value.email,
     phone: parsed.value.phone,
@@ -126,24 +129,36 @@ export async function submitMembership(raw: unknown): Promise<ActionResult> {
     tier_id: tier.id,
     tier_name: tier.name,
     price_cents: tier.priceMonthlyCents,
-    demographic_category: parsed.value.demographicCategory,
-    household_notes: parsed.value.householdNotes || null,
+    household_notes: householdNotes,
     status: "pending_payment",
     eligibility_confirmed: true,
-    eligibility_basis: eligibilityAttestation,
+    eligibility_basis: inVan
+      ? "The cuts happen in the mobile van, not inside the home."
+      : eligibilityAttestation,
+  };
+  const saved = await insertRow("membership_signups", {
+    ...shared,
+    demographic_category: null,
+    service_location: parsed.value.serviceLocation,
   });
+  const stored = saved.ok
+    ? saved
+    : await insertRow("membership_signups", {
+        ...shared,
+        demographic_category: "prefer_not_to_say",
+      });
 
-  if (!saved.ok) return saved;
+  if (!stored.ok) return stored;
 
   const checkout = await startCheckout({
     kind: "membership",
-    referenceId: saved.id,
+    referenceId: stored.id,
     amountCents: tier.priceMonthlyCents,
     description: `${tier.name} membership`,
     customerEmail: parsed.value.email,
   });
 
-  return { ...saved, checkoutUrl: checkout.url };
+  return { ...stored, checkoutUrl: checkout.url };
 }
 
 export async function submitEvent(raw: unknown): Promise<ActionResult> {
@@ -158,13 +173,15 @@ export async function submitEvent(raw: unknown): Promise<ActionResult> {
   }
   if (parsed.value.companyWebsite) return received();
 
-  const kind = findEventType(parsed.value.eventType);
+  const kind = findRequestKind(parsed.value.eventType);
   if (!kind) {
-    return { ok: false, code: "validation", error: "Choose an event type.", fieldErrors: { eventType: "Choose an event type." } };
+    return { ok: false, code: "validation", error: "Choose what you are looking for.", fieldErrors: { requestType: "Choose what you are looking for." } };
   }
+  const detail = kind.details.find((item) => item.id === parsed.value.detail);
 
-  const arrangement = parsed.value.slotArrangement === "concurrent" ? "concurrent" : "back-to-back";
+  const arrangement = parsed.value.slotArrangement === "concurrent" ? "at the same time" : "back-to-back";
   const notes = [
+    detail ? `Detail: ${detail.label}` : "",
     `Slots requested: ${parsed.value.slotCount}`,
     `Slot arrangement: ${arrangement}`,
     parsed.value.notes,
@@ -178,7 +195,7 @@ export async function submitEvent(raw: unknown): Promise<ActionResult> {
     email: parsed.value.email,
     phone: parsed.value.phone,
     package_id: kind.id,
-    package_name: kind.name,
+    package_name: kind.label,
     starting_price_cents: null,
     event_date: parsed.value.eventDate,
     event_location: parsed.value.eventLocation,

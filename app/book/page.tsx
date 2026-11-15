@@ -33,7 +33,7 @@ export default function BookPage() {
             <div className="rounded-2xl border border-white/10 bg-card p-6">
               <h2 className="font-display text-2xl leading-none">What we store</h2>
               <p className="mt-3 text-base leading-7 text-muted">
-                Name, date and time, service address, the plan, and a demographic category. The category is for anonymized grant counts. It is not a diagnosis, and this site never publishes the dispatch log.
+                Name, date and time, service address, the plan, and who the cut is for. It is not a diagnosis, and this site never publishes the dispatch log.
               </p>
             </div>
             <p className="text-sm text-muted">

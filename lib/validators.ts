@@ -1,5 +1,5 @@
 import { demographics, referrerRoles, site } from "@/content/site";
-import { eventTypes } from "@/content/events";
+import { findRequestKind, requestKinds } from "@/content/requests";
 import { feePlans, memberships } from "@/content/pricing";
 import type { FieldErrors } from "@/lib/types";
 
@@ -31,7 +31,7 @@ export type MembershipInput = {
   serviceAddress: string;
   serviceCounty: string;
   tierId: string;
-  demographicCategory: string;
+  serviceLocation: "van" | "home";
   householdNotes: string;
   eligibilityConfirmed: boolean;
   companyWebsite: string;
@@ -46,6 +46,7 @@ export type EventInput = {
   eventDate: string;
   eventLocation: string;
   locationType: "institution" | "community_site" | "residence" | "other";
+  detail: string;
   slotCount: number;
   slotArrangement: "back_to_back" | "concurrent";
   guestCount: number;
@@ -91,7 +92,7 @@ const roleIds = new Set<string>(referrerRoles.map((item) => item.id));
 const countyIds = new Set<string>(site.counties);
 const feeIds = new Set(feePlans.map((item) => item.id));
 const tierIds = new Set(memberships.map((item) => item.id));
-const eventTypeIds = new Set<string>(eventTypes.map((item) => item.id));
+const requestKindIds = new Set<string>(requestKinds.map((item) => item.id));
 
 function record(raw: unknown): Record<string, unknown> {
   return raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
@@ -165,7 +166,7 @@ export function validateBooking(raw: unknown): Ok<BookingInput> | Err {
   if (serviceAddress.length < 6) errors.serviceAddress = "Enter the street address for the visit.";
   if (!countyIds.has(serviceCounty)) errors.serviceCounty = "Choose Philadelphia, Montgomery, or Chester.";
   if (!demographicIds.has(demographicCategory)) {
-    errors.demographicCategory = "Choose a category. It is used for anonymized counts only.";
+    errors.demographicCategory = "Choose who the cut is for.";
   }
   if (!feeIds.has(feePlan)) errors.feePlan = "Choose a plan.";
   if (!checked(data.eligibilityConfirmed)) {
@@ -216,21 +217,29 @@ export function validateMembership(raw: unknown): Ok<MembershipInput> | Err {
   const serviceAddress = text(data.serviceAddress, 400);
   const serviceCounty = text(data.serviceCounty, 40);
   const tierId = text(data.tierId, 40);
-  const demographicCategory = text(data.demographicCategory, 40);
+  const serviceLocation = text(data.serviceLocation, 10);
   const householdNotes = text(data.householdNotes, 2000);
+  const inHome = serviceLocation === "home";
 
   if (fullName.length < 2) errors.fullName = "Enter the member’s name.";
   if (!emailOk(email)) errors.email = "Enter a valid email.";
   if (digits(phone).length < 10) errors.phone = "Enter a 10-digit phone number.";
-  if (serviceAddress.length < 6) errors.serviceAddress = "Enter the home address for the visits.";
+  if (serviceLocation !== "van" && serviceLocation !== "home") {
+    errors.serviceLocation = "Choose where the cuts happen.";
+  }
+  if (serviceAddress.length < 6) {
+    errors.serviceAddress = inHome
+      ? "Enter the home address."
+      : "Enter the address where the van should park.";
+  }
   if (!countyIds.has(serviceCounty)) errors.serviceCounty = "Choose Philadelphia, Montgomery, or Chester.";
   if (!tierIds.has(tierId)) errors.tierId = "Choose a membership.";
-  if (!demographicIds.has(demographicCategory)) errors.demographicCategory = "Choose a category.";
-  if (!checked(data.eligibilityConfirmed)) {
+  if (inHome && !checked(data.eligibilityConfirmed)) {
     errors.eligibilityConfirmed = "Confirm that the person cannot travel to a shop.";
   }
 
   if (Object.keys(errors).length) return { ok: false, fieldErrors: errors };
+  const location: MembershipInput["serviceLocation"] = serviceLocation === "home" ? "home" : "van";
   return {
     ok: true,
     value: {
@@ -240,9 +249,9 @@ export function validateMembership(raw: unknown): Ok<MembershipInput> | Err {
       serviceAddress,
       serviceCounty,
       tierId,
-      demographicCategory,
+      serviceLocation: location,
       householdNotes,
-      eligibilityConfirmed: true,
+      eligibilityConfirmed: inHome,
       companyWebsite: text(data.companyWebsite, 200),
     },
   };
@@ -253,30 +262,33 @@ export function validateEvent(raw: unknown): Ok<EventInput> | Err {
   const errors: FieldErrors = {};
   const contactName = text(data.contactName, 120);
   const organization = text(data.organization, 160);
-  const contact = text(data.contact, 160);
-  const eventType = text(data.eventType, 40);
+  const email = text(data.email, 160);
+  const phone = text(data.phone, 40);
+  const eventType = text(data.requestType, 40);
+  const detail = text(data.detail, 40);
   const eventDate = text(data.eventDate, 10);
   const eventLocation = text(data.eventLocation, 400);
   const slotCount = Number(text(data.slotCount, 4));
   const slotArrangement = text(data.slotArrangement, 20);
   const guestCount = Number(text(data.guestCount, 6));
   const notes = text(data.notes, 2000);
-  const kind = eventTypes.find((item) => item.id === eventType);
-  const email = emailOk(contact) ? contact : "";
-  const phone = digits(contact).length >= 10 ? contact : "";
+  const kind = findRequestKind(eventType);
+  const detailOk = Boolean(kind?.details.some((item) => item.id === detail));
 
   if (contactName.length < 2) errors.contactName = "Enter your name.";
   if (organization.length < 2) errors.organization = "Enter the organization, team, or household.";
-  if (!email && !phone) errors.contact = "Enter an email or a 10-digit phone number.";
-  if (!eventTypeIds.has(eventType) || !kind) errors.eventType = "Choose an event type.";
-  dateOk(eventDate, errors, "eventDate", "event date");
+  if (!emailOk(email)) errors.email = "Enter a valid email.";
+  if (digits(phone).length < 10) errors.phone = "Enter a 10-digit phone number.";
+  if (!requestKindIds.has(eventType) || !kind) errors.requestType = "Choose what you are looking for.";
+  if (kind && kind.details.length > 0 && !detailOk) errors.detail = "Choose a detail.";
+  dateOk(eventDate, errors, "eventDate", "preferred date");
   if (!Number.isInteger(slotCount) || slotCount < 1 || slotCount > 24) {
     errors.slotCount = "Enter at least 1 slot, up to 24.";
   }
   if (slotArrangement !== "back_to_back" && slotArrangement !== "concurrent") {
     errors.slotArrangement = "Say whether the slots run back-to-back or at the same time.";
   }
-  if (eventLocation.length < 6) errors.eventLocation = "Enter the event address.";
+  if (eventLocation.length < 6) errors.eventLocation = "Enter the location or address.";
   if (!Number.isFinite(guestCount) || guestCount < 1 || guestCount > 500) {
     errors.guestCount = "Enter an estimated headcount between 1 and 500.";
   }
@@ -291,6 +303,7 @@ export function validateEvent(raw: unknown): Ok<EventInput> | Err {
       email,
       phone,
       eventType,
+      detail,
       eventDate,
       eventLocation,
       locationType: kind.locationType,

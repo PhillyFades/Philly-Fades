@@ -15,7 +15,7 @@ const paths = [
   "/unhoused-dignity",
   "/youth-mentorship",
   "/programs",
-  "/partner",
+  "/request",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

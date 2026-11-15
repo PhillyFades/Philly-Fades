@@ -2,8 +2,8 @@
 
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
-import { eventTypes } from "@/content/events";
 import { defaultPartnerIntro, partnerRequests } from "@/content/programs";
+import { requestKinds } from "@/content/requests";
 import { demographics, referrerRoles, site } from "@/content/site";
 import { feePlans, formatDollars, memberships } from "@/content/pricing";
 import {
@@ -156,7 +156,7 @@ function CountySelect({ error, defaultValue }: { error?: string; defaultValue?: 
 
 function DemographicSelect({ error, defaultValue }: { error?: string; defaultValue?: string }) {
   return (
-    <Field label="Demographic category, for anonymized grant counts" name="demographicCategory" error={error}>
+    <Field label="Who is this cut for?" name="demographicCategory" error={error}>
       <select {...inputProps("demographicCategory", error)} defaultValue={defaultValue ?? ""} required>
         <option value="" disabled>
           Choose one
@@ -322,11 +322,25 @@ export function BookingForm({ configured }: { configured: boolean }) {
   );
 }
 
+const serviceLocations = [
+  {
+    id: "van",
+    title: "In the van",
+    body: "Mike parks outside and the cut happens in the mobile van.",
+  },
+  {
+    id: "home",
+    title: "In my home",
+    body: "The cut happens inside the home.",
+  },
+] as const;
+
 export function MembershipForm({ configured }: { configured: boolean }) {
   const params = useSearchParams();
   const requestedPlan = params.get("plan") ?? params.get("tier") ?? "";
   const defaultTier = memberships.some((tier) => tier.id === requestedPlan) ? requestedPlan : "";
-  const { errors, result, pending, onSubmit } = useForm(validateMembership, submitMembership);
+  const [serviceLocation, setServiceLocation] = useState<"" | "van" | "home">("");
+  const { errors, result, pending, onSubmit } = useForm(validateMembership, submitMembership, () => setServiceLocation(""));
 
   return (
     <form onSubmit={onSubmit} className="relative space-y-5" noValidate>
@@ -345,6 +359,33 @@ export function MembershipForm({ configured }: { configured: boolean }) {
           ))}
         </select>
       </Field>
+      <fieldset className="space-y-3">
+        <legend className="text-sm font-medium text-white">Where do the cuts happen?</legend>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {serviceLocations.map((option) => {
+            const selected = serviceLocation === option.id;
+            return (
+              <label
+                key={option.id}
+                className={`cursor-pointer rounded-2xl border p-4 ${selected ? "border-sun bg-sun/10" : "border-white/10 bg-ink"}`}
+              >
+                <input
+                  type="radio"
+                  name="serviceLocation"
+                  value={option.id}
+                  className="sr-only"
+                  checked={selected}
+                  onChange={() => setServiceLocation(option.id)}
+                  required
+                />
+                <span className="block font-semibold text-white">{option.title}</span>
+                <span className="mt-1 block text-sm leading-6 text-muted">{option.body}</span>
+              </label>
+            );
+          })}
+        </div>
+        {errors.serviceLocation ? <p className="text-sm text-[#ffb4b4]">{errors.serviceLocation}</p> : null}
+      </fieldset>
       <div className="grid gap-5 md:grid-cols-2">
         <Field label="Member name" name="fullName" error={errors.fullName}>
           <input {...inputProps("fullName", errors.fullName)} autoComplete="name" required />
@@ -357,14 +398,17 @@ export function MembershipForm({ configured }: { configured: boolean }) {
         </Field>
         <CountySelect error={errors.serviceCounty} />
       </div>
-      <Field label="Home address" name="serviceAddress" error={errors.serviceAddress}>
+      <Field
+        label={serviceLocation === "van" ? "Address where the van should park" : "Home address"}
+        name="serviceAddress"
+        error={errors.serviceAddress}
+      >
         <textarea {...inputProps("serviceAddress", errors.serviceAddress)} rows={3} required />
       </Field>
-      <DemographicSelect error={errors.demographicCategory} />
       <Field label="Household notes" name="householdNotes" error={errors.householdNotes}>
         <textarea {...inputProps("householdNotes", errors.householdNotes)} rows={3} placeholder="Who else may use an add-on, and any access notes." />
       </Field>
-      <EligibilityBox error={errors.eligibilityConfirmed} />
+      {serviceLocation === "home" ? <EligibilityBox error={errors.eligibilityConfirmed} /> : null}
       <button type="submit" disabled={pending} className="inline-flex min-h-12 items-center justify-center rounded-full bg-sun px-6 font-semibold text-ink disabled:opacity-60">
         {pending ? "Sending…" : "Request this membership"}
       </button>
@@ -372,12 +416,20 @@ export function MembershipForm({ configured }: { configured: boolean }) {
   );
 }
 
-export function EventForm({ configured }: { configured: boolean }) {
+export function RequestForm({ configured }: { configured: boolean }) {
   const params = useSearchParams();
   const requested = params.get("type") ?? "";
-  const known = eventTypes.some((item) => item.id === requested);
-  const [eventType, setEventType] = useState(known ? requested : "");
-  const { errors, result, pending, onSubmit } = useForm(validateEvent, submitEvent);
+  const requestedDetail = params.get("detail") ?? "";
+  const known = requestKinds.some((item) => item.id === requested);
+  const [requestType, setRequestType] = useState(known ? requested : "");
+  const kind = requestKinds.find((item) => item.id === requestType);
+  const [detail, setDetail] = useState(
+    kind?.details.some((item) => item.id === requestedDetail) ? requestedDetail : "",
+  );
+  const { errors, result, pending, onSubmit } = useForm(validateEvent, submitEvent, () => {
+    setRequestType("");
+    setDetail("");
+  });
   const today = useMemo(
     () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date()),
     [],
@@ -388,34 +440,59 @@ export function EventForm({ configured }: { configured: boolean }) {
       <ConfigBanner configured={configured} />
       <Notice result={result} />
       <Honeypot />
-      <div className="grid gap-5 md:grid-cols-2">
-        <Field label="Your name" name="contactName" error={errors.contactName}>
-          <input {...inputProps("contactName", errors.contactName)} autoComplete="name" required />
-        </Field>
-        <Field label="Email or phone" name="contact" error={errors.contact}>
-          <input {...inputProps("contact", errors.contact)} autoComplete="email" required />
-        </Field>
-        <Field label="Organization" name="organization" error={errors.organization}>
-          <input {...inputProps("organization", errors.organization)} placeholder="Team, school, venue, or your name if this is private" required />
-        </Field>
-        <Field label="Event type" name="eventType" error={errors.eventType}>
+      <Field label="What are you looking for?" name="requestType" error={errors.requestType}>
+        <select
+          {...inputProps("requestType", errors.requestType)}
+          value={requestType}
+          onChange={(event) => {
+            setRequestType(event.target.value);
+            setDetail("");
+          }}
+          required
+        >
+          <option value="" disabled>
+            Choose one
+          </option>
+          {requestKinds.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.label}
+            </option>
+          ))}
+        </select>
+      </Field>
+      {kind && kind.details.length > 0 ? (
+        <Field label="Which one?" name="detail" error={errors.detail}>
           <select
-            {...inputProps("eventType", errors.eventType)}
-            value={eventType}
-            onChange={(event) => setEventType(event.target.value)}
+            {...inputProps("detail", errors.detail)}
+            value={detail}
+            onChange={(event) => setDetail(event.target.value)}
             required
           >
             <option value="" disabled>
-              Choose an event type
+              Choose one
             </option>
-            {eventTypes.map((item) => (
+            {kind.details.map((item) => (
               <option key={item.id} value={item.id}>
-                {item.name}
+                {item.label}
               </option>
             ))}
           </select>
         </Field>
-        <Field label="Date" name="eventDate" error={errors.eventDate}>
+      ) : null}
+      <div className="grid gap-5 md:grid-cols-2">
+        <Field label="Your name" name="contactName" error={errors.contactName}>
+          <input {...inputProps("contactName", errors.contactName)} autoComplete="name" required />
+        </Field>
+        <Field label="Organization" name="organization" error={errors.organization}>
+          <input {...inputProps("organization", errors.organization)} placeholder="Team, school, venue, or your name if this is private" required />
+        </Field>
+        <Field label="Email" name="email" error={errors.email}>
+          <input {...inputProps("email", errors.email)} type="email" autoComplete="email" required />
+        </Field>
+        <Field label="Phone" name="phone" error={errors.phone}>
+          <input {...inputProps("phone", errors.phone)} type="tel" autoComplete="tel" required />
+        </Field>
+        <Field label="Preferred date" name="eventDate" error={errors.eventDate}>
           <input {...inputProps("eventDate", errors.eventDate)} type="date" min={today} required />
         </Field>
         <Field label="Number of 4-hour slots" name="slotCount" error={errors.slotCount}>
@@ -427,7 +504,7 @@ export function EventForm({ configured }: { configured: boolean }) {
       </div>
       <fieldset className="space-y-3">
         <legend className="text-sm font-medium text-white">How should the slots sit?</legend>
-        <p className="text-sm leading-6 text-muted">One slot is a single 4-hour block. Extra slots can run back-to-back or overlap.</p>
+        <p className="text-sm leading-6 text-muted">One slot is a single 4-hour block. Extra slots can run back-to-back or at the same time.</p>
         <label className="check-row text-sm">
           <input type="radio" name="slotArrangement" value="back_to_back" className="accent-sun" required />
           <span>Back-to-back</span>
@@ -438,7 +515,7 @@ export function EventForm({ configured }: { configured: boolean }) {
         </label>
         {errors.slotArrangement ? <p className="text-sm text-[#ffb4b4]">{errors.slotArrangement}</p> : null}
       </fieldset>
-      <Field label="Location" name="eventLocation" error={errors.eventLocation}>
+      <Field label="Location or address" name="eventLocation" error={errors.eventLocation}>
         <textarea {...inputProps("eventLocation", errors.eventLocation)} rows={3} required />
       </Field>
       <Field label="Notes" name="notes" error={errors.notes}>
@@ -448,7 +525,7 @@ export function EventForm({ configured }: { configured: boolean }) {
         Mike confirms the date, the crew, and the setup before anything is held.
       </p>
       <button type="submit" disabled={pending} className="inline-flex min-h-12 items-center justify-center rounded-full bg-sun px-6 font-semibold text-ink disabled:opacity-60">
-        {pending ? "Sending…" : "Request a 4-hour slot"}
+        {pending ? "Sending…" : "Send this request"}
       </button>
     </form>
   );
