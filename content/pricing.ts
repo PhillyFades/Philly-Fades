@@ -70,11 +70,6 @@ export const feePlans = [
     label: "Single house call · fee confirmed before the visit",
     cents: null,
   },
-  {
-    id: "partner_invoice",
-    label: "Partner invoice, voucher, or sponsored cut",
-    cents: null,
-  },
 ];
 
 export function formatDollars(cents: number) {

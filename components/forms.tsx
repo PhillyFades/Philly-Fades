@@ -171,6 +171,77 @@ function DemographicSelect({ error, defaultValue }: { error?: string; defaultVal
   );
 }
 
+function PillToggle({
+  name,
+  value,
+  label,
+  selected,
+  onSelect,
+}: {
+  name: string;
+  value: string;
+  label: string;
+  selected: boolean;
+  onSelect: (value: string) => void;
+}) {
+  return (
+    <label
+      className={`cursor-pointer rounded-full border px-4 py-2 text-sm font-semibold ${
+        selected ? "border-sun bg-sun/10 text-white" : "border-white/10 bg-ink text-muted"
+      }`}
+    >
+      <input
+        type="radio"
+        name={name}
+        value={value}
+        className="sr-only"
+        checked={selected}
+        onChange={() => onSelect(value)}
+      />
+      {label}
+    </label>
+  );
+}
+
+function PersonQuestions({
+  veteran,
+  disability,
+  onVeteran,
+  onDisability,
+}: {
+  veteran: string;
+  disability: string;
+  onVeteran: (value: string) => void;
+  onDisability: (value: string) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <p className="text-sm leading-6 text-muted">Optional, for the person receiving the cut.</p>
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-medium text-white">Are you a veteran?</legend>
+        <div className="flex flex-wrap gap-2">
+          <PillToggle name="isVeteran" value="yes" label="Yes" selected={veteran === "yes"} onSelect={onVeteran} />
+          <PillToggle name="isVeteran" value="no" label="No" selected={veteran === "no"} onSelect={onVeteran} />
+        </div>
+      </fieldset>
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-medium text-white">Do you have a disability?</legend>
+        <div className="flex flex-wrap gap-2">
+          <PillToggle name="hasDisability" value="yes" label="Yes" selected={disability === "yes"} onSelect={onDisability} />
+          <PillToggle name="hasDisability" value="no" label="No" selected={disability === "no"} onSelect={onDisability} />
+          <PillToggle
+            name="hasDisability"
+            value="prefer_not_to_say"
+            label="Prefer not to say"
+            selected={disability === "prefer_not_to_say"}
+            onSelect={onDisability}
+          />
+        </div>
+      </fieldset>
+    </div>
+  );
+}
+
 function EligibilityBox({ error }: { error?: string }) {
   return (
     <div>
@@ -199,10 +270,17 @@ function EligibilityBox({ error }: { error?: string }) {
 
 export function BookingForm({ configured }: { configured: boolean }) {
   const params = useSearchParams();
-  const defaultPlan = params.get("plan") ?? "";
+  const requestedPlan = params.get("plan") ?? "";
+  const defaultPlan = feePlans.some((plan) => plan.id === requestedPlan) ? requestedPlan : "";
   const defaultDemographic = params.get("demographic") ?? "";
   const [onBehalf, setOnBehalf] = useState(false);
-  const { errors, result, pending, onSubmit } = useForm(validateBooking, submitBooking, () => setOnBehalf(false));
+  const [veteran, setVeteran] = useState("");
+  const [disability, setDisability] = useState("");
+  const { errors, result, pending, onSubmit } = useForm(validateBooking, submitBooking, () => {
+    setOnBehalf(false);
+    setVeteran("");
+    setDisability("");
+  });
   const today = useMemo(
     () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date()),
     [],
@@ -308,6 +386,7 @@ export function BookingForm({ configured }: { configured: boolean }) {
       ) : (
         <input type="hidden" name="paymentMethod" value="pending_card" />
       )}
+      <PersonQuestions veteran={veteran} disability={disability} onVeteran={setVeteran} onDisability={setDisability} />
       <Field label="Notes for Mike" name="notes" error={errors.notes}>
         <textarea {...inputProps("notes", errors.notes)} rows={4} placeholder="Access notes, sensory needs, who will be home." />
       </Field>
@@ -340,7 +419,13 @@ export function MembershipForm({ configured }: { configured: boolean }) {
   const requestedPlan = params.get("plan") ?? params.get("tier") ?? "";
   const defaultTier = memberships.some((tier) => tier.id === requestedPlan) ? requestedPlan : "";
   const [serviceLocation, setServiceLocation] = useState<"" | "van" | "home">("");
-  const { errors, result, pending, onSubmit } = useForm(validateMembership, submitMembership, () => setServiceLocation(""));
+  const [veteran, setVeteran] = useState("");
+  const [disability, setDisability] = useState("");
+  const { errors, result, pending, onSubmit } = useForm(validateMembership, submitMembership, () => {
+    setServiceLocation("");
+    setVeteran("");
+    setDisability("");
+  });
 
   return (
     <form onSubmit={onSubmit} className="relative space-y-5" noValidate>
@@ -405,6 +490,7 @@ export function MembershipForm({ configured }: { configured: boolean }) {
       >
         <textarea {...inputProps("serviceAddress", errors.serviceAddress)} rows={3} required />
       </Field>
+      <PersonQuestions veteran={veteran} disability={disability} onVeteran={setVeteran} onDisability={setDisability} />
       <Field label="Household notes" name="householdNotes" error={errors.householdNotes}>
         <textarea {...inputProps("householdNotes", errors.householdNotes)} rows={3} placeholder="Who else may use an add-on, and any access notes." />
       </Field>

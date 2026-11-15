@@ -20,6 +20,8 @@ export type BookingInput = {
   referrerRole: string;
   referrerContact: string;
   paymentMethod: "pending_card" | "invoice" | "voucher";
+  isVeteran: boolean | null;
+  hasDisability: "yes" | "no" | "prefer_not_to_say" | null;
   notes: string;
   companyWebsite: string;
 };
@@ -34,6 +36,8 @@ export type MembershipInput = {
   serviceLocation: "van" | "home";
   householdNotes: string;
   eligibilityConfirmed: boolean;
+  isVeteran: boolean | null;
+  hasDisability: "yes" | "no" | "prefer_not_to_say" | null;
   companyWebsite: string;
 };
 
@@ -104,6 +108,22 @@ function text(value: unknown, max: number) {
 
 function checked(value: unknown) {
   return value === true || value === "true" || value === "on" || value === "1";
+}
+
+function optionalPerson(data: Record<string, unknown>, errors: FieldErrors) {
+  const veteranRaw = text(data.isVeteran, 10);
+  const disabilityRaw = text(data.hasDisability, 20);
+  let isVeteran: boolean | null = null;
+  let hasDisability: "yes" | "no" | "prefer_not_to_say" | null = null;
+  if (veteranRaw === "yes") isVeteran = true;
+  else if (veteranRaw === "no") isVeteran = false;
+  else if (veteranRaw) errors.isVeteran = "Choose yes or no.";
+  if (disabilityRaw === "yes" || disabilityRaw === "no" || disabilityRaw === "prefer_not_to_say") {
+    hasDisability = disabilityRaw;
+  } else if (disabilityRaw) {
+    errors.hasDisability = "Choose an answer.";
+  }
+  return { isVeteran, hasDisability };
 }
 
 function digits(value: string) {
@@ -180,6 +200,7 @@ export function validateBooking(raw: unknown): Ok<BookingInput> | Err {
       errors.paymentMethod = "Choose invoice or voucher when booking on behalf of someone.";
     }
   }
+  const person = optionalPerson(data, errors);
 
   if (Object.keys(errors).length) return { ok: false, fieldErrors: errors };
 
@@ -202,6 +223,8 @@ export function validateBooking(raw: unknown): Ok<BookingInput> | Err {
       referrerRole,
       referrerContact,
       paymentMethod: bookingOnBehalf ? paymentMethod : "pending_card",
+      isVeteran: person.isVeteran,
+      hasDisability: person.hasDisability,
       notes,
       companyWebsite: text(data.companyWebsite, 200),
     },
@@ -237,6 +260,7 @@ export function validateMembership(raw: unknown): Ok<MembershipInput> | Err {
   if (inHome && !checked(data.eligibilityConfirmed)) {
     errors.eligibilityConfirmed = "Confirm that the person cannot travel to a shop.";
   }
+  const person = optionalPerson(data, errors);
 
   if (Object.keys(errors).length) return { ok: false, fieldErrors: errors };
   const location: MembershipInput["serviceLocation"] = serviceLocation === "home" ? "home" : "van";
@@ -252,6 +276,8 @@ export function validateMembership(raw: unknown): Ok<MembershipInput> | Err {
       serviceLocation: location,
       householdNotes,
       eligibilityConfirmed: inHome,
+      isVeteran: person.isVeteran,
+      hasDisability: person.hasDisability,
       companyWebsite: text(data.companyWebsite, 200),
     },
   };

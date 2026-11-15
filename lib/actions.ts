@@ -16,6 +16,25 @@ import {
 
 const DISPATCH_FROM = `${site.dispatchShop}, ${site.dispatchAddress}`;
 
+function personNoteLines(isVeteran: boolean | null, hasDisability: "yes" | "no" | "prefer_not_to_say" | null) {
+  const lines: string[] = [];
+  if (isVeteran === true) lines.push("Are you a veteran? Yes");
+  if (isVeteran === false) lines.push("Are you a veteran? No");
+  if (hasDisability === "yes") lines.push("Do you have a disability? Yes");
+  if (hasDisability === "no") lines.push("Do you have a disability? No");
+  if (hasDisability === "prefer_not_to_say") lines.push("Do you have a disability? Prefer not to say");
+  return lines;
+}
+
+function withPersonNotes(
+  notes: string,
+  isVeteran: boolean | null,
+  hasDisability: "yes" | "no" | "prefer_not_to_say" | null,
+) {
+  const combined = [...personNoteLines(isVeteran, hasDisability), notes].filter(Boolean).join("\n\n");
+  return combined || null;
+}
+
 function received(): ActionResult {
   return { ok: true, id: "received", checkoutUrl: null };
 }
@@ -62,7 +81,7 @@ export async function submitBooking(raw: unknown): Promise<ActionResult> {
   const paymentMethod = parsed.value.paymentMethod;
   const status = paymentMethod === "pending_card" ? "pending_payment" : "requested";
 
-  const saved = await insertRow("bookings", {
+  const bookingRow = {
     client_name: parsed.value.clientName,
     client_phone: parsed.value.clientPhone || null,
     client_email: parsed.value.clientEmail || null,
@@ -82,22 +101,28 @@ export async function submitBooking(raw: unknown): Promise<ActionResult> {
     referrer_role: parsed.value.bookingOnBehalf ? parsed.value.referrerRole : null,
     referrer_contact: parsed.value.bookingOnBehalf ? parsed.value.referrerContact : null,
     payment_method: paymentMethod,
-    notes: parsed.value.notes || null,
+    notes: withPersonNotes(parsed.value.notes, parsed.value.isVeteran, parsed.value.hasDisability),
     dispatched_from: DISPATCH_FROM,
     barber_name: site.barber,
+  };
+  const saved = await insertRow("bookings", {
+    ...bookingRow,
+    is_veteran: parsed.value.isVeteran,
+    has_disability: parsed.value.hasDisability,
   });
+  const stored = saved.ok ? saved : await insertRow("bookings", bookingRow);
 
-  if (!saved.ok || paymentMethod !== "pending_card") return saved;
+  if (!stored.ok || paymentMethod !== "pending_card") return stored;
 
   const checkout = await startCheckout({
     kind: "booking",
-    referenceId: saved.id,
+    referenceId: stored.id,
     amountCents: plan?.cents ?? null,
     description: plan?.label ?? "House call",
     customerEmail: parsed.value.clientEmail,
   });
 
-  return { ...saved, checkoutUrl: checkout.url };
+  return { ...stored, checkoutUrl: checkout.url };
 }
 
 export async function submitMembership(raw: unknown): Promise<ActionResult> {
@@ -119,7 +144,13 @@ export async function submitMembership(raw: unknown): Promise<ActionResult> {
 
   const inVan = parsed.value.serviceLocation === "van";
   const locationLine = inVan ? "Service location: In the van" : "Service location: In my home";
-  const householdNotes = [locationLine, parsed.value.householdNotes].filter(Boolean).join("\n\n");
+  const householdNotes = [
+    locationLine,
+    ...personNoteLines(parsed.value.isVeteran, parsed.value.hasDisability),
+    parsed.value.householdNotes,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
   const shared = {
     full_name: parsed.value.fullName,
     email: parsed.value.email,
@@ -140,6 +171,8 @@ export async function submitMembership(raw: unknown): Promise<ActionResult> {
     ...shared,
     demographic_category: null,
     service_location: parsed.value.serviceLocation,
+    is_veteran: parsed.value.isVeteran,
+    has_disability: parsed.value.hasDisability,
   });
   const stored = saved.ok
     ? saved
