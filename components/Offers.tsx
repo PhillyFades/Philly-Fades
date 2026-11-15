@@ -18,7 +18,7 @@ export function MembershipGrid() {
             <span className="ml-1 font-sans text-base font-medium text-muted">/mo</span>
           </p>
           <p className="mt-3 text-sm text-gold">{tier.cuts}</p>
-          <p className="mt-2 text-sm text-white">In the van or in your home</p>
+          <p className="mt-2 text-sm text-white">In your home</p>
           <p className="mt-4 text-base leading-7 text-muted">{tier.summary}</p>
           <ul className="mt-5 space-y-2 text-sm leading-6 text-white">
             {tier.perks.map((perk) => (

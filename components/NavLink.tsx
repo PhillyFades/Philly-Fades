@@ -21,22 +21,24 @@ export function isNavActive(href: string, pathname: string, requestType: string 
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+const underline = "underline decoration-[#FFC72C] decoration-2 underline-offset-4";
+
 const styles = {
   header: {
-    idle: "relative text-sm text-white/90 hover:text-[#FFC72C]",
-    active: "relative text-sm text-[#FFC72C]",
+    idle: "text-sm text-white/90 hover:text-[#FFC72C]",
+    active: `text-sm text-[#FFC72C] ${underline}`,
   },
   mobile: {
-    idle: "inline-flex items-center gap-2 text-lg text-white",
-    active: "inline-flex items-center gap-2 text-lg text-[#FFC72C]",
+    idle: "w-fit text-lg text-white",
+    active: `w-fit text-lg text-[#FFC72C] ${underline}`,
   },
   "mobile-sub": {
-    idle: "inline-flex items-center gap-2 text-base text-muted",
-    active: "inline-flex items-center gap-2 text-base text-[#FFC72C]",
+    idle: "w-fit text-base text-muted",
+    active: `w-fit text-base text-[#FFC72C] ${underline}`,
   },
   footer: {
     idle: "text-sm text-white hover:text-[#FFC72C]",
-    active: "text-sm text-[#FFC72C] underline decoration-[#FFC72C] underline-offset-4",
+    active: `text-sm text-[#FFC72C] ${underline}`,
   },
 } as const;
 
@@ -55,16 +57,7 @@ export function NavLink({
 
   return (
     <Link href={href} className={active ? styles[variant].active : styles[variant].idle} aria-current={active ? "page" : undefined}>
-      {variant === "mobile" || variant === "mobile-sub" ? (
-        <span aria-hidden className={`h-1.5 w-1.5 shrink-0 rounded-full ${active ? "bg-[#FFC72C]" : "bg-transparent"}`} />
-      ) : null}
       {children}
-      {variant === "header" ? (
-        <span aria-hidden className="pointer-events-none absolute -bottom-2 left-1/2 flex -translate-x-1/2 flex-col items-center gap-0.5">
-          <span className={`h-px w-6 ${active ? "bg-[#FFC72C]" : "bg-transparent"}`} />
-          <span className={`h-1 w-1 rounded-full ${active ? "bg-[#FFC72C]" : "bg-transparent"}`} />
-        </span>
-      ) : null}
     </Link>
   );
 }

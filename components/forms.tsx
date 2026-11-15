@@ -4,6 +4,7 @@ import { useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import { defaultPartnerIntro, partnerRequests } from "@/content/programs";
 import { requestKinds } from "@/content/requests";
+import { AddressFields } from "@/components/AddressFields";
 import { demographics, referrerRoles, site } from "@/content/site";
 import { feePlans, formatDollars, memberships } from "@/content/pricing";
 import {
@@ -276,10 +277,12 @@ export function BookingForm({ configured }: { configured: boolean }) {
   const [onBehalf, setOnBehalf] = useState(false);
   const [veteran, setVeteran] = useState("");
   const [disability, setDisability] = useState("");
+  const [addressReset, setAddressReset] = useState(0);
   const { errors, result, pending, onSubmit } = useForm(validateBooking, submitBooking, () => {
     setOnBehalf(false);
     setVeteran("");
     setDisability("");
+    setAddressReset((value) => value + 1);
   });
   const today = useMemo(
     () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date()),
@@ -309,9 +312,7 @@ export function BookingForm({ configured }: { configured: boolean }) {
         </Field>
         <CountySelect error={errors.serviceCounty} />
       </div>
-      <Field label="Service address" name="serviceAddress" error={errors.serviceAddress}>
-        <textarea {...inputProps("serviceAddress", errors.serviceAddress)} rows={3} autoComplete="street-address" required />
-      </Field>
+      <AddressFields legend="Service address" errors={errors} resetKey={addressReset} />
       <div className="grid gap-5 md:grid-cols-2">
         <DemographicSelect error={errors.demographicCategory} defaultValue={defaultDemographic} />
         <Field label="Fee or plan" name="feePlan" error={errors.feePlan}>
@@ -401,30 +402,17 @@ export function BookingForm({ configured }: { configured: boolean }) {
   );
 }
 
-const serviceLocations = [
-  {
-    id: "van",
-    title: "In the van",
-    body: "Mike parks outside and the cut happens in the mobile van.",
-  },
-  {
-    id: "home",
-    title: "In my home",
-    body: "The cut happens inside the home.",
-  },
-] as const;
-
 export function MembershipForm({ configured }: { configured: boolean }) {
   const params = useSearchParams();
   const requestedPlan = params.get("plan") ?? params.get("tier") ?? "";
   const defaultTier = memberships.some((tier) => tier.id === requestedPlan) ? requestedPlan : "";
-  const [serviceLocation, setServiceLocation] = useState<"" | "van" | "home">("");
   const [veteran, setVeteran] = useState("");
   const [disability, setDisability] = useState("");
+  const [addressReset, setAddressReset] = useState(0);
   const { errors, result, pending, onSubmit } = useForm(validateMembership, submitMembership, () => {
-    setServiceLocation("");
     setVeteran("");
     setDisability("");
+    setAddressReset((value) => value + 1);
   });
 
   return (
@@ -444,33 +432,6 @@ export function MembershipForm({ configured }: { configured: boolean }) {
           ))}
         </select>
       </Field>
-      <fieldset className="space-y-3">
-        <legend className="text-sm font-medium text-white">Where do the cuts happen?</legend>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {serviceLocations.map((option) => {
-            const selected = serviceLocation === option.id;
-            return (
-              <label
-                key={option.id}
-                className={`cursor-pointer rounded-2xl border p-4 ${selected ? "border-sun bg-sun/10" : "border-white/10 bg-ink"}`}
-              >
-                <input
-                  type="radio"
-                  name="serviceLocation"
-                  value={option.id}
-                  className="sr-only"
-                  checked={selected}
-                  onChange={() => setServiceLocation(option.id)}
-                  required
-                />
-                <span className="block font-semibold text-white">{option.title}</span>
-                <span className="mt-1 block text-sm leading-6 text-muted">{option.body}</span>
-              </label>
-            );
-          })}
-        </div>
-        {errors.serviceLocation ? <p className="text-sm text-[#ffb4b4]">{errors.serviceLocation}</p> : null}
-      </fieldset>
       <div className="grid gap-5 md:grid-cols-2">
         <Field label="Member name" name="fullName" error={errors.fullName}>
           <input {...inputProps("fullName", errors.fullName)} autoComplete="name" required />
@@ -483,18 +444,12 @@ export function MembershipForm({ configured }: { configured: boolean }) {
         </Field>
         <CountySelect error={errors.serviceCounty} />
       </div>
-      <Field
-        label={serviceLocation === "van" ? "Address where the van should park" : "Home address"}
-        name="serviceAddress"
-        error={errors.serviceAddress}
-      >
-        <textarea {...inputProps("serviceAddress", errors.serviceAddress)} rows={3} required />
-      </Field>
+      <AddressFields legend="Home address" errors={errors} resetKey={addressReset} />
       <PersonQuestions veteran={veteran} disability={disability} onVeteran={setVeteran} onDisability={setDisability} />
       <Field label="Household notes" name="householdNotes" error={errors.householdNotes}>
         <textarea {...inputProps("householdNotes", errors.householdNotes)} rows={3} placeholder="Who else may use an add-on, and any access notes." />
       </Field>
-      {serviceLocation === "home" ? <EligibilityBox error={errors.eligibilityConfirmed} /> : null}
+      <EligibilityBox error={errors.eligibilityConfirmed} />
       <button type="submit" disabled={pending} className="inline-flex min-h-12 items-center justify-center rounded-full bg-sun px-6 font-semibold text-ink disabled:opacity-60">
         {pending ? "Sending…" : "Request this membership"}
       </button>
@@ -512,9 +467,11 @@ export function RequestForm({ configured }: { configured: boolean }) {
   const [detail, setDetail] = useState(
     kind?.details.some((item) => item.id === requestedDetail) ? requestedDetail : "",
   );
+  const [addressReset, setAddressReset] = useState(0);
   const { errors, result, pending, onSubmit } = useForm(validateEvent, submitEvent, () => {
     setRequestType("");
     setDetail("");
+    setAddressReset((value) => value + 1);
   });
   const today = useMemo(
     () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date()),
@@ -601,9 +558,7 @@ export function RequestForm({ configured }: { configured: boolean }) {
         </label>
         {errors.slotArrangement ? <p className="text-sm text-[#ffb4b4]">{errors.slotArrangement}</p> : null}
       </fieldset>
-      <Field label="Location or address" name="eventLocation" error={errors.eventLocation}>
-        <textarea {...inputProps("eventLocation", errors.eventLocation)} rows={3} required />
-      </Field>
+      <AddressFields legend="Location" errors={errors} resetKey={addressReset} />
       <Field label="Notes" name="notes" error={errors.notes}>
         <textarea {...inputProps("notes", errors.notes)} rows={4} placeholder="Access, timing, or anything Mike should know before he calls." />
       </Field>
@@ -627,7 +582,10 @@ export function ReferralForm({ configured }: { configured: boolean }) {
     if (!names.includes(item.group)) names.push(item.group);
     return names;
   }, []);
-  const { errors, result, pending, onSubmit } = useForm(validateReferral, submitReferral);
+  const [addressReset, setAddressReset] = useState(0);
+  const { errors, result, pending, onSubmit } = useForm(validateReferral, submitReferral, () => {
+    setAddressReset((value) => value + 1);
+  });
 
   return (
     <form onSubmit={onSubmit} className="relative space-y-5" noValidate>
@@ -681,9 +639,7 @@ export function ReferralForm({ configured }: { configured: boolean }) {
           <input {...inputProps("siteName", errors.siteName)} />
         </Field>
       </div>
-      <Field label="Site or visit address" name="siteAddress" error={errors.siteAddress}>
-        <textarea {...inputProps("siteAddress", errors.siteAddress)} rows={3} required />
-      </Field>
+      <AddressFields legend="Site or visit address" errors={errors} resetKey={addressReset} />
       <div className="grid gap-5 md:grid-cols-2">
         <Field label="Preferred date" name="preferredDate" error={errors.preferredDate}>
           <input {...inputProps("preferredDate", errors.preferredDate)} type="date" />

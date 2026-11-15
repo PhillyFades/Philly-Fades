@@ -1,5 +1,6 @@
 "use server";
 
+import { addressColumns, formatAddress } from "@/lib/address";
 import { findRequestKind } from "@/content/requests";
 import { findFeePlan, findMembership } from "@/content/pricing";
 import { eligibilityAttestation, site } from "@/content/site";
@@ -87,7 +88,7 @@ export async function submitBooking(raw: unknown): Promise<ActionResult> {
     client_email: parsed.value.clientEmail || null,
     requested_date: parsed.value.requestedDate,
     requested_time: parsed.value.requestedTime,
-    service_address: parsed.value.serviceAddress,
+    service_address: formatAddress(parsed.value),
     service_county: parsed.value.serviceCounty,
     demographic_category: parsed.value.demographicCategory,
     fee_plan: plan?.label ?? parsed.value.feePlan,
@@ -107,6 +108,7 @@ export async function submitBooking(raw: unknown): Promise<ActionResult> {
   };
   const saved = await insertRow("bookings", {
     ...bookingRow,
+    ...addressColumns(parsed.value),
     is_veteran: parsed.value.isVeteran,
     has_disability: parsed.value.hasDisability,
   });
@@ -142,8 +144,7 @@ export async function submitMembership(raw: unknown): Promise<ActionResult> {
     return { ok: false, code: "validation", error: "Choose a membership.", fieldErrors: { tierId: "Choose a membership." } };
   }
 
-  const inVan = parsed.value.serviceLocation === "van";
-  const locationLine = inVan ? "Service location: In the van" : "Service location: In my home";
+  const locationLine = "Service location: In my home";
   const householdNotes = [
     locationLine,
     ...personNoteLines(parsed.value.isVeteran, parsed.value.hasDisability),
@@ -155,7 +156,7 @@ export async function submitMembership(raw: unknown): Promise<ActionResult> {
     full_name: parsed.value.fullName,
     email: parsed.value.email,
     phone: parsed.value.phone,
-    service_address: parsed.value.serviceAddress,
+    service_address: formatAddress(parsed.value),
     service_county: parsed.value.serviceCounty,
     tier_id: tier.id,
     tier_name: tier.name,
@@ -163,14 +164,13 @@ export async function submitMembership(raw: unknown): Promise<ActionResult> {
     household_notes: householdNotes,
     status: "pending_payment",
     eligibility_confirmed: true,
-    eligibility_basis: inVan
-      ? "The cuts happen in the mobile van, not inside the home."
-      : eligibilityAttestation,
+    eligibility_basis: eligibilityAttestation,
   };
   const saved = await insertRow("membership_signups", {
     ...shared,
     demographic_category: null,
-    service_location: parsed.value.serviceLocation,
+    service_location: "home",
+    ...addressColumns(parsed.value),
     is_veteran: parsed.value.isVeteran,
     has_disability: parsed.value.hasDisability,
   });
@@ -179,6 +179,7 @@ export async function submitMembership(raw: unknown): Promise<ActionResult> {
     : await insertRow("membership_signups", {
         ...shared,
         demographic_category: "prefer_not_to_say",
+        service_location: "home",
       });
 
   if (!stored.ok) return stored;
@@ -222,7 +223,7 @@ export async function submitEvent(raw: unknown): Promise<ActionResult> {
     .filter(Boolean)
     .join("\n\n");
 
-  return insertRow("event_inquiries", {
+  const eventRow = {
     contact_name: parsed.value.contactName,
     organization: parsed.value.organization,
     email: parsed.value.email,
@@ -231,14 +232,16 @@ export async function submitEvent(raw: unknown): Promise<ActionResult> {
     package_name: kind.label,
     starting_price_cents: null,
     event_date: parsed.value.eventDate,
-    event_location: parsed.value.eventLocation,
+    event_location: formatAddress(parsed.value),
     location_type: parsed.value.locationType,
     guest_count: parsed.value.guestCount,
     notes,
     compliance_acknowledged: true,
     eligibility_confirmed: false,
     status: "requested",
-  });
+  };
+  const saved = await insertRow("event_inquiries", { ...eventRow, ...addressColumns(parsed.value) });
+  return saved.ok ? saved : insertRow("event_inquiries", eventRow);
 }
 
 export async function submitReferral(raw: unknown): Promise<ActionResult> {
@@ -253,7 +256,7 @@ export async function submitReferral(raw: unknown): Promise<ActionResult> {
   }
   if (parsed.value.companyWebsite) return received();
 
-  return insertRow("community_referrals", {
+  const referralRow = {
     program: parsed.value.program,
     request_type: parsed.value.requestType,
     contact_name: parsed.value.contactName,
@@ -261,12 +264,14 @@ export async function submitReferral(raw: unknown): Promise<ActionResult> {
     email: parsed.value.email || null,
     phone: parsed.value.phone || null,
     site_name: parsed.value.siteName || null,
-    site_address: parsed.value.siteAddress,
+    site_address: formatAddress(parsed.value),
     preferred_date: parsed.value.preferredDate || null,
     headcount: parsed.value.headcount || null,
     message: parsed.value.message,
     status: "requested",
-  });
+  };
+  const saved = await insertRow("community_referrals", { ...referralRow, ...addressColumns(parsed.value) });
+  return saved.ok ? saved : insertRow("community_referrals", referralRow);
 }
 
 export async function submitVendor(raw: unknown): Promise<ActionResult> {

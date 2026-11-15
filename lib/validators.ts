@@ -1,15 +1,15 @@
+import { formatAddress, stateCode, type AddressInput } from "@/lib/address";
 import { demographics, referrerRoles, site } from "@/content/site";
 import { findRequestKind, requestKinds } from "@/content/requests";
 import { feePlans, memberships } from "@/content/pricing";
 import type { FieldErrors } from "@/lib/types";
 
-export type BookingInput = {
+export type BookingInput = AddressInput & {
   clientName: string;
   clientPhone: string;
   clientEmail: string;
   requestedDate: string;
   requestedTime: string;
-  serviceAddress: string;
   serviceCounty: string;
   demographicCategory: string;
   feePlan: string;
@@ -26,14 +26,13 @@ export type BookingInput = {
   companyWebsite: string;
 };
 
-export type MembershipInput = {
+export type MembershipInput = AddressInput & {
   fullName: string;
   email: string;
   phone: string;
-  serviceAddress: string;
   serviceCounty: string;
   tierId: string;
-  serviceLocation: "van" | "home";
+  serviceLocation: "home";
   householdNotes: string;
   eligibilityConfirmed: boolean;
   isVeteran: boolean | null;
@@ -41,14 +40,13 @@ export type MembershipInput = {
   companyWebsite: string;
 };
 
-export type EventInput = {
+export type EventInput = AddressInput & {
   contactName: string;
   organization: string;
   email: string;
   phone: string;
   eventType: string;
   eventDate: string;
-  eventLocation: string;
   locationType: "institution" | "community_site" | "residence" | "other";
   detail: string;
   slotCount: number;
@@ -58,7 +56,7 @@ export type EventInput = {
   companyWebsite: string;
 };
 
-export type ReferralInput = {
+export type ReferralInput = AddressInput & {
   program: string;
   requestType: string;
   contactName: string;
@@ -66,7 +64,6 @@ export type ReferralInput = {
   email: string;
   phone: string;
   siteName: string;
-  siteAddress: string;
   preferredDate: string;
   headcount: string;
   message: string;
@@ -140,6 +137,19 @@ function todayInPhiladelphia() {
   }).format(new Date());
 }
 
+function readAddress(data: Record<string, unknown>, errors: FieldErrors): AddressInput {
+  const addressLine1 = text(data.addressLine1, 120);
+  const addressLine2 = text(data.addressLine2, 40);
+  const city = text(data.city, 80);
+  const state = stateCode(text(data.state, 40));
+  const zip = text(data.zip, 10).replace(/\D/g, "").slice(0, 5);
+  if (addressLine1.length < 3) errors.addressLine1 = "Enter the street address.";
+  if (city.length < 2) errors.city = "Enter the city.";
+  if (!state) errors.state = "Choose a state.";
+  if (!/^\d{5}$/.test(zip)) errors.zip = "Enter a 5-digit ZIP.";
+  return { addressLine1, addressLine2, city, state: state || "PA", zip };
+}
+
 function dateOk(value: string, errors: FieldErrors, key: string, label: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     errors[key] = `Choose a ${label}.`;
@@ -158,7 +168,7 @@ export function validateBooking(raw: unknown): Ok<BookingInput> | Err {
   const clientEmail = text(data.clientEmail, 160);
   const requestedDate = text(data.requestedDate, 10);
   const requestedTime = text(data.requestedTime, 20);
-  const serviceAddress = text(data.serviceAddress, 400);
+  const address = readAddress(data, errors);
   const serviceCounty = text(data.serviceCounty, 40);
   const demographicCategory = text(data.demographicCategory, 40);
   const feePlan = text(data.feePlan, 40);
@@ -183,7 +193,6 @@ export function validateBooking(raw: unknown): Ok<BookingInput> | Err {
   }
   dateOk(requestedDate, errors, "requestedDate", "visit date");
   if (!requestedTime) errors.requestedTime = "Choose a time.";
-  if (serviceAddress.length < 6) errors.serviceAddress = "Enter the street address for the visit.";
   if (!countyIds.has(serviceCounty)) errors.serviceCounty = "Choose Philadelphia, Montgomery, or Chester.";
   if (!demographicIds.has(demographicCategory)) {
     errors.demographicCategory = "Choose who the cut is for.";
@@ -212,7 +221,7 @@ export function validateBooking(raw: unknown): Ok<BookingInput> | Err {
       clientEmail,
       requestedDate,
       requestedTime,
-      serviceAddress,
+      ...address,
       serviceCounty,
       demographicCategory,
       feePlan,
@@ -237,45 +246,34 @@ export function validateMembership(raw: unknown): Ok<MembershipInput> | Err {
   const fullName = text(data.fullName, 120);
   const email = text(data.email, 160);
   const phone = text(data.phone, 40);
-  const serviceAddress = text(data.serviceAddress, 400);
+  const address = readAddress(data, errors);
   const serviceCounty = text(data.serviceCounty, 40);
   const tierId = text(data.tierId, 40);
-  const serviceLocation = text(data.serviceLocation, 10);
   const householdNotes = text(data.householdNotes, 2000);
-  const inHome = serviceLocation === "home";
 
   if (fullName.length < 2) errors.fullName = "Enter the member’s name.";
   if (!emailOk(email)) errors.email = "Enter a valid email.";
   if (digits(phone).length < 10) errors.phone = "Enter a 10-digit phone number.";
-  if (serviceLocation !== "van" && serviceLocation !== "home") {
-    errors.serviceLocation = "Choose where the cuts happen.";
-  }
-  if (serviceAddress.length < 6) {
-    errors.serviceAddress = inHome
-      ? "Enter the home address."
-      : "Enter the address where the van should park.";
-  }
   if (!countyIds.has(serviceCounty)) errors.serviceCounty = "Choose Philadelphia, Montgomery, or Chester.";
   if (!tierIds.has(tierId)) errors.tierId = "Choose a membership.";
-  if (inHome && !checked(data.eligibilityConfirmed)) {
+  if (!checked(data.eligibilityConfirmed)) {
     errors.eligibilityConfirmed = "Confirm that the person cannot travel to a shop.";
   }
   const person = optionalPerson(data, errors);
 
   if (Object.keys(errors).length) return { ok: false, fieldErrors: errors };
-  const location: MembershipInput["serviceLocation"] = serviceLocation === "home" ? "home" : "van";
   return {
     ok: true,
     value: {
       fullName,
       email,
       phone,
-      serviceAddress,
+      ...address,
       serviceCounty,
       tierId,
-      serviceLocation: location,
+      serviceLocation: "home",
       householdNotes,
-      eligibilityConfirmed: inHome,
+      eligibilityConfirmed: true,
       isVeteran: person.isVeteran,
       hasDisability: person.hasDisability,
       companyWebsite: text(data.companyWebsite, 200),
@@ -293,7 +291,7 @@ export function validateEvent(raw: unknown): Ok<EventInput> | Err {
   const eventType = text(data.requestType, 40);
   const detail = text(data.detail, 40);
   const eventDate = text(data.eventDate, 10);
-  const eventLocation = text(data.eventLocation, 400);
+  const address = readAddress(data, errors);
   const slotCount = Number(text(data.slotCount, 4));
   const slotArrangement = text(data.slotArrangement, 20);
   const guestCount = Number(text(data.guestCount, 6));
@@ -314,7 +312,6 @@ export function validateEvent(raw: unknown): Ok<EventInput> | Err {
   if (slotArrangement !== "back_to_back" && slotArrangement !== "concurrent") {
     errors.slotArrangement = "Say whether the slots run back-to-back or at the same time.";
   }
-  if (eventLocation.length < 6) errors.eventLocation = "Enter the location or address.";
   if (!Number.isFinite(guestCount) || guestCount < 1 || guestCount > 500) {
     errors.guestCount = "Enter an estimated headcount between 1 and 500.";
   }
@@ -331,7 +328,7 @@ export function validateEvent(raw: unknown): Ok<EventInput> | Err {
       eventType,
       detail,
       eventDate,
-      eventLocation,
+      ...address,
       locationType: kind.locationType,
       slotCount,
       slotArrangement: arrangement,
@@ -361,7 +358,7 @@ export function validateReferral(raw: unknown): Ok<ReferralInput> | Err {
   const email = text(data.email, 160);
   const phone = text(data.phone, 40);
   const siteName = text(data.siteName, 160);
-  const siteAddress = text(data.siteAddress, 400);
+  const address = readAddress(data, errors);
   const preferredDate = text(data.preferredDate, 10);
   const headcount = text(data.headcount, 20);
   const message = text(data.message, 2000);
@@ -375,7 +372,6 @@ export function validateReferral(raw: unknown): Ok<ReferralInput> | Err {
   } else if (email && !emailOk(email)) {
     errors.email = "That email does not look complete.";
   }
-  if (siteAddress.length < 6) errors.siteAddress = "Enter the site or visit address.";
   if (preferredDate) dateOk(preferredDate, errors, "preferredDate", "preferred date");
   if (message.length < 8) errors.message = "Add a short note about the request.";
 
@@ -390,7 +386,7 @@ export function validateReferral(raw: unknown): Ok<ReferralInput> | Err {
       email,
       phone,
       siteName,
-      siteAddress,
+      ...address,
       preferredDate,
       headcount,
       message,

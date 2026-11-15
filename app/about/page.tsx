@@ -5,7 +5,7 @@ import { pageMeta } from "@/lib/seo";
 
 export const metadata = pageMeta(
   "Mike Webb Jr. and Barbers on Broad",
-  "Meet Mike Webb Jr., the barber behind Buzz Boxx PXV. House calls and the mobile van, with Barbers on Broad on North Broad Street in ZIP 19121 as home base. The host shop is wheelchair accessible.",
+  "Meet Mike Webb Jr., the barber behind Buzz Boxx PXV. House calls happen in the home. The mobile van is for events. Barbers on Broad on North Broad Street in ZIP 19121 is home base. The host shop is wheelchair accessible.",
   "/about",
 );
 
@@ -52,7 +52,7 @@ export default function AboutPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-ink/80 to-ink/20" />
         <Container className="relative flex min-h-[50svh] items-end py-12">
-          <p className="max-w-lg font-display text-3xl leading-none">The chair travels in the van. The shop on North Broad still sponsors the work.</p>
+          <p className="max-w-lg font-display text-3xl leading-none">House calls happen in the home. The van is for events. The shop on North Broad still sponsors the work.</p>
         </Container>
       </section>
       <section className="border-y border-white/10 bg-card py-16">

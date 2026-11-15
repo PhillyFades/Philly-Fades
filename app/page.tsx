@@ -31,7 +31,7 @@ export default function HomePage() {
             We come to <Gold>you</Gold>.
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-[1.6] text-white/85">
-            Buzz Boxx PXV is {site.barber}’s house-call chair. The van parks outside, or the cut happens in the home. Memberships, caregiver bookings, and community cuts across {site.serviceArea}. Officially dispatched from {site.dispatchShop}.
+            Buzz Boxx PXV is {site.barber}’s house-call chair. Memberships and house calls happen in the home. The van is for community days and events across {site.serviceArea}. Officially dispatched from {site.dispatchShop}.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button href="/book">Book a house call</Button>

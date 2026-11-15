@@ -6,7 +6,7 @@ import { pageMeta } from "@/lib/seo";
 
 export const metadata = pageMeta(
   "Request a membership",
-  "Request a Buzz Boxx PXV membership. Cuts happen in the van or in the home. Choose The Lineup, The Rotation, or The Residence. In-home plans ask you to confirm the person cannot travel to a shop.",
+  "Request a Buzz Boxx PXV membership. Cuts happen in the home. Choose The Lineup, The Rotation, or The Residence, and confirm the person cannot travel to a shop.",
   "/memberships/request",
 );
 
@@ -14,7 +14,7 @@ export default function MembershipRequestPage() {
   return (
     <>
       <PageHero eyebrow="Memberships" title={<>Request a <Gold>membership</Gold>.</>}>
-        Cuts can happen in the van, with Mike parked outside, or inside the home. If the cut is in the home, confirm the person cannot travel to a shop. Choose a plan, or arrive here from a plan card and that plan is already selected. Payment stays pending until Stripe is connected.
+        Memberships are in the home. Confirm the person cannot travel to a shop. Choose a plan, or arrive here from a plan card and that plan is already selected. Payment stays pending until Stripe is connected.
       </PageHero>
       <section className="py-16">
         <Container>
