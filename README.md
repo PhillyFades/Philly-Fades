@@ -66,7 +66,7 @@ Do not auto-charge from the current forms. Self-pay rows stay `pending_payment`.
 
 ## Placeholder content to confirm
 
-See the final pull request notes. Prices in `content/pricing.ts` are marked `PLACEHOLDER PRICING - confirm with client`. Phone, email, and the default site URL are placeholders. The PDFs in `public/docs/` are stand-ins for the program one-pager, licensing packet, and COI.
+See the final pull request notes. Membership prices in `content/pricing.ts` are marked `PLACEHOLDER PRICING - confirm with client`. Event dates are not priced on the site; Mike prices them after an inquiry. Phone, email, and the default site URL are placeholders. The PDFs in `public/docs/` are stand-ins for the program one-pager, licensing packet, and COI. Past and upcoming event cards on `/events` are marked “add later.”
 
 ## Scripts
 

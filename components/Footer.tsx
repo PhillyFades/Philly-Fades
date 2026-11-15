@@ -42,6 +42,11 @@ export function Footer() {
                 Book a house call
               </Link>
             </li>
+            <li>
+              <Link href="/partner" className="text-sm text-white hover:text-sun">
+                Partner with us
+              </Link>
+            </li>
           </ul>
         </div>
         <div>
@@ -71,7 +76,7 @@ export function Footer() {
         </div>
         <div className="mx-auto w-full max-w-6xl px-5 pb-8 text-xs leading-5 text-muted">
           <p>{site.cancellation}</p>
-          <p className="mt-2">© 2026 {site.legalName}. Membership and event prices on this site are examples until confirmed.</p>
+          <p className="mt-2">© 2026 {site.legalName}. Membership prices on this site are examples until confirmed. Event dates are priced with Mike after the inquiry.</p>
         </div>
       </div>
     </footer>

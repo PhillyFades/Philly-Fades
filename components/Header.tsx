@@ -91,6 +91,9 @@ export function Header() {
                 {item.label}
               </Link>
             ))}
+            <Link href="/partner" className="text-lg text-white">
+              Partner with us
+            </Link>
             <Link
               href="/book"
               className="mt-2 inline-flex min-h-12 items-center justify-center rounded-full bg-sun px-5 font-semibold text-ink"

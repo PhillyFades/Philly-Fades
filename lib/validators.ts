@@ -1,5 +1,6 @@
 import { demographics, referrerRoles, site } from "@/content/site";
-import { eventPackages, feePlans, memberships } from "@/content/pricing";
+import { eventTypes } from "@/content/events";
+import { feePlans, memberships } from "@/content/pricing";
 import type { FieldErrors } from "@/lib/types";
 
 export type BookingInput = {
@@ -41,14 +42,14 @@ export type EventInput = {
   organization: string;
   email: string;
   phone: string;
-  packageId: string;
+  eventType: string;
   eventDate: string;
   eventLocation: string;
   locationType: "institution" | "community_site" | "residence" | "other";
+  slotCount: number;
+  slotArrangement: "back_to_back" | "concurrent";
   guestCount: number;
   notes: string;
-  complianceAcknowledged: boolean;
-  eligibilityConfirmed: boolean;
   companyWebsite: string;
 };
 
@@ -90,7 +91,7 @@ const roleIds = new Set<string>(referrerRoles.map((item) => item.id));
 const countyIds = new Set<string>(site.counties);
 const feeIds = new Set(feePlans.map((item) => item.id));
 const tierIds = new Set(memberships.map((item) => item.id));
-const packageIds = new Set(eventPackages.map((item) => item.id));
+const eventTypeIds = new Set<string>(eventTypes.map((item) => item.id));
 
 function record(raw: unknown): Record<string, unknown> {
   return raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
@@ -252,35 +253,36 @@ export function validateEvent(raw: unknown): Ok<EventInput> | Err {
   const errors: FieldErrors = {};
   const contactName = text(data.contactName, 120);
   const organization = text(data.organization, 160);
-  const email = text(data.email, 160);
-  const phone = text(data.phone, 40);
-  const packageId = text(data.packageId, 40);
+  const contact = text(data.contact, 160);
+  const eventType = text(data.eventType, 40);
   const eventDate = text(data.eventDate, 10);
   const eventLocation = text(data.eventLocation, 400);
-  const locationType = text(data.locationType, 40);
+  const slotCount = Number(text(data.slotCount, 4));
+  const slotArrangement = text(data.slotArrangement, 20);
   const guestCount = Number(text(data.guestCount, 6));
   const notes = text(data.notes, 2000);
-  const allowed = new Set(["institution", "community_site", "residence", "other"]);
+  const kind = eventTypes.find((item) => item.id === eventType);
+  const email = emailOk(contact) ? contact : "";
+  const phone = digits(contact).length >= 10 ? contact : "";
 
-  if (contactName.length < 2) errors.contactName = "Enter a contact name.";
-  if (organization.length < 2) errors.organization = "Enter the host organization or household name.";
-  if (!emailOk(email)) errors.email = "Enter a valid email.";
-  if (digits(phone).length < 10) errors.phone = "Enter a 10-digit phone number.";
-  if (!packageIds.has(packageId)) errors.packageId = "Choose a package.";
+  if (contactName.length < 2) errors.contactName = "Enter your name.";
+  if (organization.length < 2) errors.organization = "Enter the organization, team, or household.";
+  if (!email && !phone) errors.contact = "Enter an email or a 10-digit phone number.";
+  if (!eventTypeIds.has(eventType) || !kind) errors.eventType = "Choose an event type.";
   dateOk(eventDate, errors, "eventDate", "event date");
+  if (!Number.isInteger(slotCount) || slotCount < 1 || slotCount > 24) {
+    errors.slotCount = "Enter at least 1 slot, up to 24.";
+  }
+  if (slotArrangement !== "back_to_back" && slotArrangement !== "concurrent") {
+    errors.slotArrangement = "Say whether the slots run back-to-back or at the same time.";
+  }
   if (eventLocation.length < 6) errors.eventLocation = "Enter the event address.";
-  if (!allowed.has(locationType)) errors.locationType = "Choose the kind of setting.";
   if (!Number.isFinite(guestCount) || guestCount < 1 || guestCount > 500) {
-    errors.guestCount = "Enter a guest count between 1 and 500.";
-  }
-  if (!checked(data.complianceAcknowledged)) {
-    errors.complianceAcknowledged = "Confirm that this request can be reviewed under the out-of-shop rule.";
-  }
-  if (locationType === "residence" && !checked(data.eligibilityConfirmed)) {
-    errors.eligibilityConfirmed = "A residence event needs the same eligibility confirmation as a house call.";
+    errors.guestCount = "Enter an estimated headcount between 1 and 500.";
   }
 
-  if (Object.keys(errors).length) return { ok: false, fieldErrors: errors };
+  if (Object.keys(errors).length || !kind) return { ok: false, fieldErrors: errors };
+  const arrangement: EventInput["slotArrangement"] = slotArrangement === "concurrent" ? "concurrent" : "back_to_back";
   return {
     ok: true,
     value: {
@@ -288,14 +290,14 @@ export function validateEvent(raw: unknown): Ok<EventInput> | Err {
       organization,
       email,
       phone,
-      packageId,
+      eventType,
       eventDate,
       eventLocation,
-      locationType: locationType as EventInput["locationType"],
+      locationType: kind.locationType,
+      slotCount,
+      slotArrangement: arrangement,
       guestCount,
       notes,
-      complianceAcknowledged: true,
-      eligibilityConfirmed: locationType === "residence",
       companyWebsite: text(data.companyWebsite, 200),
     },
   };

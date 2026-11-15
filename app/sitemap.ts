@@ -14,7 +14,8 @@ const paths = [
   "/veterans-outreach",
   "/unhoused-dignity",
   "/youth-mentorship",
-  "/impact-partnerships",
+  "/programs",
+  "/partner",
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

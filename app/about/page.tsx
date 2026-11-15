@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { ComplianceStatement } from "@/components/Compliance";
 import { Button, Container, Eyebrow, Gold, PageHero } from "@/components/ui";
-import { site } from "@/content/site";
+import { site, van } from "@/content/site";
 import { pageMeta } from "@/lib/seo";
 
 export const metadata = pageMeta(
@@ -41,6 +41,19 @@ export default function AboutPage() {
             </p>
             <p>{site.cancellation}</p>
           </div>
+        </Container>
+      </section>
+      <section className="relative min-h-[50svh] overflow-hidden border-y border-white/10">
+        <Image
+          src={van.src}
+          alt={van.alt}
+          fill
+          className="object-cover object-[38%_center]"
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-ink/80 to-ink/20" />
+        <Container className="relative flex min-h-[50svh] items-end py-12">
+          <p className="max-w-lg font-display text-3xl leading-none">The chair travels in the van. The shop on North Broad still sponsors the work.</p>
         </Container>
       </section>
       <section className="border-y border-white/10 bg-card py-16">

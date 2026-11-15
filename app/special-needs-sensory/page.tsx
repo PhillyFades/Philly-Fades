@@ -1,7 +1,5 @@
-import { ReferralForm } from "@/components/forms";
 import { ProgramView } from "@/components/ProgramView";
 import { programs } from "@/content/programs";
-import { isIntakeConfigured } from "@/lib/supabase";
 import { pageMeta } from "@/lib/seo";
 
 const program = programs.sensory;
@@ -13,18 +11,5 @@ export const metadata = pageMeta(
 );
 
 export default function SensoryPage() {
-  return (
-    <ProgramView {...program} bookHref={`/book?demographic=${program.bookDemographic}`}>
-      <ReferralForm
-        configured={isIntakeConfigured()}
-        program="sensory"
-        heading="Family or support-coordinator request"
-        intro="Share what the room needs before the first visit. Mike reads this before he sets a time."
-        requestTypes={[
-          { value: "sensory_home_visit", label: "Sensory-safe home visit" },
-          { value: "support_coordinator", label: "Support coordinator introduction" },
-        ]}
-      />
-    </ProgramView>
-  );
+  return <ProgramView {...program} bookHref={`/book?demographic=${program.bookDemographic}`} />;
 }

@@ -4,7 +4,7 @@ import { Inter, Space_Grotesk } from "next/font/google";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { JsonLd } from "@/components/JsonLd";
-import { site, siteUrl } from "@/content/site";
+import { site, siteUrl, van } from "@/content/site";
 import "./globals.css";
 
 const inter = Inter({
@@ -31,10 +31,10 @@ export const metadata: Metadata = {
     siteName: site.name,
     images: [
       {
-        url: "/images/mike-work-06.webp",
-        width: 1707,
-        height: 2560,
-        alt: "A finished fade by Mike Webb Jr.",
+        url: van.src,
+        width: van.width,
+        height: van.height,
+        alt: van.alt,
       },
     ],
   },

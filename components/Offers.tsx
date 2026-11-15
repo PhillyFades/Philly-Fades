@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { eventPackages, formatDollars, memberships } from "@/content/pricing";
+import { formatDollars, memberships } from "@/content/pricing";
 import { Card, Eyebrow } from "@/components/ui";
 
 export function MembershipGrid() {
@@ -41,32 +41,3 @@ export function MembershipGrid() {
   );
 }
 
-export function EventGrid() {
-  return (
-    <div className="grid gap-5 lg:grid-cols-3">
-      {eventPackages.map((pack) => (
-        <Card key={pack.id} id={pack.id} className={pack.featured ? "border-sun/70" : undefined}>
-          <Eyebrow>{pack.hours}</Eyebrow>
-          <h3 className="mt-4 font-display text-3xl leading-none">{pack.name}</h3>
-          <p className="mt-4 font-display text-4xl leading-none text-sun">
-            {formatDollars(pack.startingAtCents)}
-            <span className="ml-1 font-sans text-base font-medium text-muted">starting at</span>
-          </p>
-          <p className="mt-3 text-sm text-gold">{pack.barbersOnSite}</p>
-          <p className="mt-4 text-base leading-7 text-muted">{pack.summary}</p>
-          <ul className="mt-5 space-y-2 text-sm leading-6">
-            {pack.includes.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-          <Link
-            href={`/events?package=${pack.id}#request`}
-            className="mt-6 inline-flex min-h-11 items-center rounded-full border border-gold/80 px-5 text-sm font-semibold"
-          >
-            Inquire
-          </Link>
-        </Card>
-      ))}
-    </div>
-  );
-}

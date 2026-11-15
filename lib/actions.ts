@@ -1,6 +1,7 @@
 "use server";
 
-import { findEventPackage, findFeePlan, findMembership } from "@/content/pricing";
+import { findEventType } from "@/content/events";
+import { findFeePlan, findMembership } from "@/content/pricing";
 import { eligibilityAttestation, site } from "@/content/site";
 import { startCheckout } from "@/lib/payments";
 import { getSupabaseAdmin } from "@/lib/supabase";
@@ -157,26 +158,35 @@ export async function submitEvent(raw: unknown): Promise<ActionResult> {
   }
   if (parsed.value.companyWebsite) return received();
 
-  const pack = findEventPackage(parsed.value.packageId);
-  if (!pack) {
-    return { ok: false, code: "validation", error: "Choose a package.", fieldErrors: { packageId: "Choose a package." } };
+  const kind = findEventType(parsed.value.eventType);
+  if (!kind) {
+    return { ok: false, code: "validation", error: "Choose an event type.", fieldErrors: { eventType: "Choose an event type." } };
   }
+
+  const arrangement = parsed.value.slotArrangement === "concurrent" ? "concurrent" : "back-to-back";
+  const notes = [
+    `Slots requested: ${parsed.value.slotCount}`,
+    `Slot arrangement: ${arrangement}`,
+    parsed.value.notes,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 
   return insertRow("event_inquiries", {
     contact_name: parsed.value.contactName,
     organization: parsed.value.organization,
     email: parsed.value.email,
     phone: parsed.value.phone,
-    package_id: pack.id,
-    package_name: pack.name,
-    starting_price_cents: pack.startingAtCents,
+    package_id: kind.id,
+    package_name: kind.name,
+    starting_price_cents: null,
     event_date: parsed.value.eventDate,
     event_location: parsed.value.eventLocation,
     location_type: parsed.value.locationType,
     guest_count: parsed.value.guestCount,
-    notes: parsed.value.notes || null,
+    notes,
     compliance_acknowledged: true,
-    eligibility_confirmed: parsed.value.eligibilityConfirmed,
+    eligibility_confirmed: false,
     status: "requested",
   });
 }

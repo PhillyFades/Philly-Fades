@@ -56,15 +56,22 @@ export const referrerRoles = [
   { id: "other", label: "Other partner" },
 ] as const;
 
+export const van = {
+  src: "/images/mobile-van.jpg",
+  alt: "Philly Fades Buzz Boxx mobile barber van with the side door open showing the barber chair inside",
+  width: 1024,
+  height: 683,
+} as const;
+
 export const eligibilityAttestation =
   "The person receiving this in-home visit qualifies for out-of-shop barbering because of illness, physical disability, a sensory or developmental need, confinement, or advanced age that prevents travel to a licensed shop. Pennsylvania’s Barbers’ License Law allows a sponsored barber to serve someone at a residence or in an institution in cases of sickness, incapacitation, confinement, and other emergencies.";
 
 export const nav = [
   { href: "/memberships", label: "Memberships" },
+  { href: "/programs", label: "Programs" },
   { href: "/events", label: "Events" },
   { href: "/gallery", label: "Gallery" },
   { href: "/about", label: "About" },
-  { href: "/impact-partnerships", label: "Impact" },
 ] as const;
 
 export const communityLinks = [
@@ -73,7 +80,7 @@ export const communityLinks = [
   { href: "/veterans-outreach", label: "Veterans" },
   { href: "/unhoused-dignity", label: "Unhoused dignity" },
   { href: "/youth-mentorship", label: "Youth mentorship" },
-  { href: "/impact-partnerships", label: "Foundations & agencies" },
+  { href: "/programs", label: "Foundations & agencies" },
 ] as const;
 
 export const howItWorks = [

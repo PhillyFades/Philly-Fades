@@ -2,8 +2,10 @@
 
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
+import { eventTypes } from "@/content/events";
+import { defaultPartnerIntro, partnerRequests } from "@/content/programs";
 import { demographics, eligibilityAttestation, referrerRoles, site } from "@/content/site";
-import { eventPackages, feePlans, formatDollars, memberships } from "@/content/pricing";
+import { feePlans, formatDollars, memberships } from "@/content/pricing";
 import {
   submitBooking,
   submitEvent,
@@ -377,9 +379,10 @@ export function MembershipForm({ configured }: { configured: boolean }) {
 
 export function EventForm({ configured }: { configured: boolean }) {
   const params = useSearchParams();
-  const defaultPackage = params.get("package") ?? "";
-  const [locationType, setLocationType] = useState("institution");
-  const { errors, result, pending, onSubmit } = useForm(validateEvent, submitEvent, () => setLocationType("institution"));
+  const requested = params.get("type") ?? "";
+  const known = eventTypes.some((item) => item.id === requested);
+  const [eventType, setEventType] = useState(known ? requested : "");
+  const { errors, result, pending, onSubmit } = useForm(validateEvent, submitEvent);
   const today = useMemo(
     () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date()),
     [],
@@ -391,102 +394,116 @@ export function EventForm({ configured }: { configured: boolean }) {
       <Notice result={result} />
       <Honeypot />
       <div className="grid gap-5 md:grid-cols-2">
-        <Field label="Contact name" name="contactName" error={errors.contactName}>
-          <input {...inputProps("contactName", errors.contactName)} required />
+        <Field label="Your name" name="contactName" error={errors.contactName}>
+          <input {...inputProps("contactName", errors.contactName)} autoComplete="name" required />
         </Field>
-        <Field label="Organization or host" name="organization" error={errors.organization}>
-          <input {...inputProps("organization", errors.organization)} required />
+        <Field label="Email or phone" name="contact" error={errors.contact}>
+          <input {...inputProps("contact", errors.contact)} autoComplete="email" required />
         </Field>
-        <Field label="Email" name="email" error={errors.email}>
-          <input {...inputProps("email", errors.email)} type="email" required />
+        <Field label="Organization" name="organization" error={errors.organization}>
+          <input {...inputProps("organization", errors.organization)} placeholder="Team, school, venue, or your name if this is private" required />
         </Field>
-        <Field label="Phone" name="phone" error={errors.phone}>
-          <input {...inputProps("phone", errors.phone)} type="tel" required />
-        </Field>
-        <Field label="Package" name="packageId" error={errors.packageId}>
-          <select {...inputProps("packageId", errors.packageId)} defaultValue={defaultPackage} required>
+        <Field label="Event type" name="eventType" error={errors.eventType}>
+          <select
+            {...inputProps("eventType", errors.eventType)}
+            value={eventType}
+            onChange={(event) => setEventType(event.target.value)}
+            required
+          >
             <option value="" disabled>
-              Choose a package
+              Choose an event type
             </option>
-            {eventPackages.map((pack) => (
-              <option key={pack.id} value={pack.id}>
-                {pack.name} · starting at {formatDollars(pack.startingAtCents)}
+            {eventTypes.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
               </option>
             ))}
           </select>
         </Field>
-        <Field label="Event date" name="eventDate" error={errors.eventDate}>
+        <Field label="Date" name="eventDate" error={errors.eventDate}>
           <input {...inputProps("eventDate", errors.eventDate)} type="date" min={today} required />
         </Field>
-        <Field label="Setting" name="locationType" error={errors.locationType}>
-          <select
-            {...inputProps("locationType", errors.locationType)}
-            value={locationType}
-            onChange={(event) => setLocationType(event.target.value)}
-          >
-            <option value="institution">Institution (shelter, senior site, clinic, school)</option>
-            <option value="community_site">Community site</option>
-            <option value="residence">Private residence</option>
-            <option value="other">Other, needs a compliance review</option>
-          </select>
+        <Field label="Number of 4-hour slots" name="slotCount" error={errors.slotCount}>
+          <input {...inputProps("slotCount", errors.slotCount)} type="number" min={1} max={24} defaultValue={1} required />
         </Field>
-        <Field label="Approximate guests" name="guestCount" error={errors.guestCount}>
+        <Field label="Estimated headcount" name="guestCount" error={errors.guestCount}>
           <input {...inputProps("guestCount", errors.guestCount)} type="number" min={1} max={500} required />
         </Field>
       </div>
-      <Field label="Event address" name="eventLocation" error={errors.eventLocation}>
+      <fieldset className="space-y-3">
+        <legend className="text-sm font-medium text-white">How should the slots sit?</legend>
+        <p className="text-sm leading-6 text-muted">One slot is a single 4-hour block. Extra slots can run back-to-back or overlap.</p>
+        <label className="check-row text-sm">
+          <input type="radio" name="slotArrangement" value="back_to_back" className="accent-sun" required />
+          <span>Back-to-back</span>
+        </label>
+        <label className="check-row text-sm">
+          <input type="radio" name="slotArrangement" value="concurrent" className="accent-sun" />
+          <span>At the same time</span>
+        </label>
+        {errors.slotArrangement ? <p className="text-sm text-[#ffb4b4]">{errors.slotArrangement}</p> : null}
+      </fieldset>
+      <Field label="Location" name="eventLocation" error={errors.eventLocation}>
         <textarea {...inputProps("eventLocation", errors.eventLocation)} rows={3} required />
       </Field>
       <Field label="Notes" name="notes" error={errors.notes}>
-        <textarea {...inputProps("notes", errors.notes)} rows={4} />
+        <textarea {...inputProps("notes", errors.notes)} rows={4} placeholder="Access, timing, or anything Mike should know before he calls." />
       </Field>
-      <label className="check-row text-sm leading-6" htmlFor="complianceAcknowledged">
-        <input id="complianceAcknowledged" name="complianceAcknowledged" type="checkbox" className="mt-1 h-5 w-5 accent-sun" required />
-        <span>
-          I understand Buzz Boxx PXV is not a licensed mobile shop. This request will be reviewed under 49 Pa. Code § 3.61 and may be declined if the setting is outside the statute.
-        </span>
-      </label>
-      {errors.complianceAcknowledged ? <p className="text-sm text-[#ffb4b4]">{errors.complianceAcknowledged}</p> : null}
-      {locationType === "residence" ? <EligibilityBox error={errors.eligibilityConfirmed} /> : null}
+      <p className="text-sm leading-6 text-muted">
+        Mike confirms the date, the crew, and the setup before anything is held. Licensed and fully compliant with PA State Board rules for out-of-shop services.
+      </p>
       <button type="submit" disabled={pending} className="inline-flex min-h-12 items-center justify-center rounded-full bg-sun px-6 font-semibold text-ink disabled:opacity-60">
-        {pending ? "Sending…" : "Request this event"}
+        {pending ? "Sending…" : "Request a 4-hour slot"}
       </button>
     </form>
   );
 }
 
-export function ReferralForm({
-  configured,
-  program,
-  requestTypes,
-  heading,
-  intro,
-}: {
-  configured: boolean;
-  program: string;
-  requestTypes: { value: string; label: string }[];
-  heading: string;
-  intro: string;
-}) {
+export function ReferralForm({ configured }: { configured: boolean }) {
+  const params = useSearchParams();
+  const requested = params.get("type") ?? "";
+  const known = partnerRequests.some((item) => item.value === requested);
+  const [requestType, setRequestType] = useState(known ? requested : "");
+  const selected = partnerRequests.find((item) => item.value === requestType);
+  const groups = partnerRequests.reduce<string[]>((names, item) => {
+    if (!names.includes(item.group)) names.push(item.group);
+    return names;
+  }, []);
   const { errors, result, pending, onSubmit } = useForm(validateReferral, submitReferral);
 
   return (
     <form onSubmit={onSubmit} className="relative space-y-5" noValidate>
       <div>
-        <h2 className="font-display text-3xl leading-none tracking-tight">{heading}</h2>
-        <p className="mt-3 text-base leading-7 text-muted">{intro}</p>
+        <h2 className="font-display text-3xl leading-none tracking-tight">
+          {selected?.heading ?? "Caregiver or facility request"}
+        </h2>
+        <p className="mt-3 text-base leading-7 text-muted">{selected?.intro ?? defaultPartnerIntro}</p>
       </div>
       <ConfigBanner configured={configured} />
       <Notice result={result} />
       <Honeypot />
-      <input type="hidden" name="program" value={program} />
+      <input type="hidden" name="program" value={selected?.program ?? ""} />
       <div className="grid gap-5 md:grid-cols-2">
-        <Field label="Request type" name="requestType" error={errors.requestType}>
-          <select {...inputProps("requestType", errors.requestType)} defaultValue={requestTypes[0]?.value ?? ""} required>
-            {requestTypes.map((item) => (
-              <option key={item.value} value={item.value}>
-                {item.label}
-              </option>
+        <Field label="Request type" name="requestType" error={errors.requestType ?? errors.program}>
+          <select
+            {...inputProps("requestType", errors.requestType ?? errors.program)}
+            value={requestType}
+            onChange={(event) => setRequestType(event.target.value)}
+            required
+          >
+            <option value="" disabled>
+              Choose a request
+            </option>
+            {groups.map((group) => (
+              <optgroup key={group} label={group}>
+                {partnerRequests
+                  .filter((item) => item.group === group)
+                  .map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+              </optgroup>
             ))}
           </select>
         </Field>

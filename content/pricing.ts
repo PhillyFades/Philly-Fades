@@ -12,17 +12,6 @@ export type MembershipTier = {
   featured?: boolean;
 };
 
-export type EventPackage = {
-  id: string;
-  name: string;
-  startingAtCents: number;
-  hours: string;
-  barbersOnSite: string;
-  summary: string;
-  includes: string[];
-  featured?: boolean;
-};
-
 export const memberships: MembershipTier[] = [
   {
     id: "the-lineup",
@@ -70,55 +59,6 @@ export const memberships: MembershipTier[] = [
   },
 ];
 
-export const eventPackages: EventPackage[] = [
-  {
-    id: "community-popup",
-    name: "Community Pop-Up",
-    startingAtCents: 120000,
-    hours: "3 hours",
-    barbersOnSite: "1 barber on site",
-    summary:
-      "A capped pop-up for a shelter, pantry, senior building, rec center, or neighborhood partner. Mike leads the chair.",
-    includes: [
-      "3-hour on-site block",
-      "Mike Webb Jr. on the chair",
-      "Shop-supplied tools and hospital-grade sanitation",
-      "A simple sign-in sheet your team can keep for reporting",
-    ],
-  },
-  {
-    id: "corporate-activation",
-    name: "Corporate & Brand Activation",
-    startingAtCents: 280000,
-    hours: "4 hours",
-    barbersOnSite: "2 barbers on site",
-    summary:
-      "A hosted chair for a workplace, brand set, or community activation. Mike leads. A second chair is added for larger rooms after the setting is cleared under Pennsylvania out-of-shop rules.",
-    includes: [
-      "4-hour activation",
-      "Mike leading, with a second chair when the room needs it",
-      "Branded cape option and a quiet setup",
-      "Run-of-show timing with your producer or HR lead",
-    ],
-    featured: true,
-  },
-  {
-    id: "private-vip",
-    name: "Private / VIP",
-    startingAtCents: 420000,
-    hours: "4 hours",
-    barbersOnSite: "2 barbers on site",
-    summary:
-      "A private residence, hospitality suite, or closed guest list. The visit is scheduled only when the setting fits the out-of-shop statute.",
-    includes: [
-      "4-hour private block",
-      "Mike leading a two-chair setup",
-      "Capped guest list and a quiet room plan",
-      "Hot-towel finishes and lineup detail",
-    ],
-  },
-];
-
 export const feePlans = [
   ...memberships.map((tier) => ({
     id: tier.id,
@@ -147,10 +87,6 @@ export function formatDollars(cents: number) {
 
 export function findMembership(id: string) {
   return memberships.find((tier) => tier.id === id) ?? null;
-}
-
-export function findEventPackage(id: string) {
-  return eventPackages.find((pack) => pack.id === id) ?? null;
 }
 
 export function findFeePlan(id: string) {

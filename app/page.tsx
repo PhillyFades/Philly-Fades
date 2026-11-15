@@ -1,9 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import { EventGrid, MembershipGrid } from "@/components/Offers";
+import { MembershipGrid } from "@/components/Offers";
 import { Button, Container, Eyebrow, Gold, IconTile, Section } from "@/components/ui";
 import { gallery } from "@/content/gallery";
-import { communityLinks, howItWorks, site } from "@/content/site";
+import { communityLinks, howItWorks, site, van } from "@/content/site";
 import { pageMeta } from "@/lib/seo";
 
 export const metadata = pageMeta(
@@ -44,6 +44,31 @@ export default function HomePage() {
         </Container>
       </section>
 
+      <section className="relative min-h-[70svh] overflow-hidden border-y border-white/10">
+        <Image
+          src={van.src}
+          alt={van.alt}
+          fill
+          className="object-cover object-[38%_center]"
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/75 to-ink/25" />
+        <Container className="relative flex min-h-[70svh] items-end py-16">
+          <div className="max-w-xl">
+            <Eyebrow>The traveling chair</Eyebrow>
+            <h2 className="mt-3 font-display text-[clamp(2.2rem,5vw,3.8rem)] leading-[0.95]">
+              The van is the shop that <Gold>comes to you</Gold>.
+            </h2>
+            <p className="mt-5 text-lg leading-[1.6] text-white/85">
+              Side door open, chair inside. {site.barber} brings that setup to a home, a building, or an event. Four-hour event slots are booked with him directly.
+            </p>
+            <div className="mt-8">
+              <Button href="/events">See the van’s events</Button>
+            </div>
+          </div>
+        </Container>
+      </section>
+
       <section className="border-y border-white/10 bg-card">
         <Container className="grid gap-6 py-8 sm:grid-cols-3">
           {[
@@ -76,14 +101,13 @@ export default function HomePage() {
       <Section className="bg-[#111]">
         <Eyebrow>Events</Eyebrow>
         <h2 className="mt-3 max-w-3xl font-display text-[clamp(2.2rem,5vw,3.8rem)] leading-[0.95]">
-          Pop-ups, activations, and <Gold>private</Gold> rooms.
+          Four-hour slots. <Gold>Mike prices the day.</Gold>
         </h2>
         <p className="mt-5 max-w-2xl text-lg leading-[1.6] text-muted">
-          Community and corporate bookings led by Mike. Every date is reviewed against Pennsylvania’s
-          out-of-shop rule before it is held. Starting prices are examples.
+          The van can sit for one slot or several, back-to-back or overlapping. Barber count, setup, and price are worked out with Mike after the inquiry.
         </p>
-        <div className="mt-10">
-          <EventGrid />
+        <div className="mt-8">
+          <Button href="/events">Plan an event</Button>
         </div>
       </Section>
 
@@ -163,8 +187,14 @@ export default function HomePage() {
         </h2>
         <p className="mt-5 max-w-2xl text-lg leading-[1.6] text-muted">
           Sensory-safe haircuts, homebound senior grooming, veteran outreach, shelter pop-ups, and
-          youth mentorship. Foundations and case managers can start with a vendor intake.
+          youth mentorship. Facilities and case managers can request a visit for the people they support.
         </p>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Button href="/programs">See all programs</Button>
+          <Button href="/partner" variant="ghost">
+            Partner with us
+          </Button>
+        </div>
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {communityLinks.map((item) => (
             <Link
