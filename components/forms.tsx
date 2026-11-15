@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { defaultPartnerIntro, partnerRequests } from "@/content/programs";
 import { requestKinds } from "@/content/requests";
 import { AddressFields } from "@/components/AddressFields";
+import { describeBlocks, type ScheduleBlock } from "@/lib/availability";
 import { demographics, referrerRoles, site } from "@/content/site";
 import { feePlans, formatDollars, memberships } from "@/content/pricing";
 import {
@@ -243,6 +244,12 @@ function PersonQuestions({
   );
 }
 
+function DateNote({ blocks }: { blocks: ScheduleBlock[] }) {
+  const notes = describeBlocks(blocks);
+  if (!notes.length) return null;
+  return <p className="mt-2 text-sm leading-6 text-muted">{notes.join(". ")}.</p>;
+}
+
 function EligibilityBox({ error }: { error?: string }) {
   return (
     <div>
@@ -269,21 +276,34 @@ function EligibilityBox({ error }: { error?: string }) {
   );
 }
 
-export function BookingForm({ configured }: { configured: boolean }) {
+export function BookingForm({
+  configured,
+  plans,
+  blocks = [],
+}: {
+  configured: boolean;
+  plans?: { id: string; label: string }[];
+  blocks?: ScheduleBlock[];
+}) {
   const params = useSearchParams();
+  const choices = plans ?? feePlans.map((plan) => ({ id: plan.id, label: plan.label }));
   const requestedPlan = params.get("plan") ?? "";
-  const defaultPlan = feePlans.some((plan) => plan.id === requestedPlan) ? requestedPlan : "";
+  const defaultPlan = choices.some((plan) => plan.id === requestedPlan) ? requestedPlan : "";
   const defaultDemographic = params.get("demographic") ?? "";
   const [onBehalf, setOnBehalf] = useState(false);
   const [veteran, setVeteran] = useState("");
   const [disability, setDisability] = useState("");
   const [addressReset, setAddressReset] = useState(0);
-  const { errors, result, pending, onSubmit } = useForm(validateBooking, submitBooking, () => {
-    setOnBehalf(false);
-    setVeteran("");
-    setDisability("");
-    setAddressReset((value) => value + 1);
-  });
+  const { errors, result, pending, onSubmit } = useForm(
+    (raw) => validateBooking(raw, { feeIds: choices.map((plan) => plan.id), blocks }),
+    submitBooking,
+    () => {
+      setOnBehalf(false);
+      setVeteran("");
+      setDisability("");
+      setAddressReset((value) => value + 1);
+    },
+  );
   const today = useMemo(
     () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date()),
     [],
@@ -306,6 +326,7 @@ export function BookingForm({ configured }: { configured: boolean }) {
         </Field>
         <Field label="Preferred date" name="requestedDate" error={errors.requestedDate}>
           <input {...inputProps("requestedDate", errors.requestedDate)} type="date" min={today} required />
+          <DateNote blocks={blocks} />
         </Field>
         <Field label="Preferred time" name="requestedTime" error={errors.requestedTime}>
           <input {...inputProps("requestedTime", errors.requestedTime)} type="time" required />
@@ -320,7 +341,7 @@ export function BookingForm({ configured }: { configured: boolean }) {
             <option value="" disabled>
               Choose a plan
             </option>
-            {feePlans.map((plan) => (
+            {choices.map((plan) => (
               <option key={plan.id} value={plan.id}>
                 {plan.label}
               </option>
@@ -402,18 +423,37 @@ export function BookingForm({ configured }: { configured: boolean }) {
   );
 }
 
-export function MembershipForm({ configured }: { configured: boolean }) {
+export function MembershipForm({
+  configured,
+  plans,
+}: {
+  configured: boolean;
+  plans?: { id: string; name: string; priceCents: number; cadence: string; cuts: string }[];
+}) {
   const params = useSearchParams();
+  const choices =
+    plans ??
+    memberships.map((tier) => ({
+      id: tier.id,
+      name: tier.name,
+      priceCents: tier.priceMonthlyCents,
+      cadence: "monthly",
+      cuts: tier.cuts,
+    }));
   const requestedPlan = params.get("plan") ?? params.get("tier") ?? "";
-  const defaultTier = memberships.some((tier) => tier.id === requestedPlan) ? requestedPlan : "";
+  const defaultTier = choices.some((tier) => tier.id === requestedPlan) ? requestedPlan : "";
   const [veteran, setVeteran] = useState("");
   const [disability, setDisability] = useState("");
   const [addressReset, setAddressReset] = useState(0);
-  const { errors, result, pending, onSubmit } = useForm(validateMembership, submitMembership, () => {
-    setVeteran("");
-    setDisability("");
-    setAddressReset((value) => value + 1);
-  });
+  const { errors, result, pending, onSubmit } = useForm(
+    (raw) => validateMembership(raw, { tierIds: choices.map((tier) => tier.id) }),
+    submitMembership,
+    () => {
+      setVeteran("");
+      setDisability("");
+      setAddressReset((value) => value + 1);
+    },
+  );
 
   return (
     <form onSubmit={onSubmit} className="relative space-y-5" noValidate>
@@ -425,9 +465,9 @@ export function MembershipForm({ configured }: { configured: boolean }) {
           <option value="" disabled>
             Choose a membership
           </option>
-          {memberships.map((tier) => (
+          {choices.map((tier) => (
             <option key={tier.id} value={tier.id}>
-              {tier.name} · {formatDollars(tier.priceMonthlyCents)}/mo · {tier.cuts}
+              {tier.name} · {formatDollars(tier.priceCents)}/{tier.cadence === "monthly" ? "mo" : tier.cadence} · {tier.cuts}
             </option>
           ))}
         </select>
@@ -457,7 +497,7 @@ export function MembershipForm({ configured }: { configured: boolean }) {
   );
 }
 
-export function RequestForm({ configured }: { configured: boolean }) {
+export function RequestForm({ configured, blocks = [] }: { configured: boolean; blocks?: ScheduleBlock[] }) {
   const params = useSearchParams();
   const requested = params.get("type") ?? "";
   const requestedDetail = params.get("detail") ?? "";
@@ -468,7 +508,7 @@ export function RequestForm({ configured }: { configured: boolean }) {
     kind?.details.some((item) => item.id === requestedDetail) ? requestedDetail : "",
   );
   const [addressReset, setAddressReset] = useState(0);
-  const { errors, result, pending, onSubmit } = useForm(validateEvent, submitEvent, () => {
+  const { errors, result, pending, onSubmit } = useForm((raw) => validateEvent(raw, { blocks }), submitEvent, () => {
     setRequestType("");
     setDetail("");
     setAddressReset((value) => value + 1);
@@ -537,6 +577,7 @@ export function RequestForm({ configured }: { configured: boolean }) {
         </Field>
         <Field label="Preferred date" name="eventDate" error={errors.eventDate}>
           <input {...inputProps("eventDate", errors.eventDate)} type="date" min={today} required />
+          <DateNote blocks={blocks} />
         </Field>
         <Field label="Number of 4-hour slots" name="slotCount" error={errors.slotCount}>
           <input {...inputProps("slotCount", errors.slotCount)} type="number" min={1} max={24} defaultValue={1} required />

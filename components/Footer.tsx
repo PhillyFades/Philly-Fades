@@ -2,8 +2,9 @@ import { Suspense } from "react";
 import { Logo } from "@/components/Logo";
 import { NavLink } from "@/components/NavLink";
 import { communityLinks, nav, site } from "@/content/site";
+import type { PublicSettings } from "@/lib/cms";
 
-export function Footer() {
+export function Footer({ settings }: { settings: PublicSettings }) {
   return (
     <footer className="border-t border-white/10 bg-ink">
       <div className="mx-auto grid w-full max-w-6xl gap-10 px-5 py-16 md:grid-cols-[1.4fr_1fr_1fr]">
@@ -17,15 +18,27 @@ export function Footer() {
           <p className="mt-4 max-w-sm text-base leading-7 text-muted">
             {site.dba}. Premium traveling haircuts by {site.barber}, dispatched from {site.dispatchShop}.
           </p>
-          <p className="mt-4 text-sm text-muted">{site.phonePlaceholder}</p>
-          <p className="text-sm text-muted">{site.emailPlaceholder}</p>
+          {settings.phone ? (
+            <a href={`tel:${settings.phone}`} className="mt-4 block text-sm text-muted">
+              {settings.phone}
+            </a>
+          ) : (
+            <p className="mt-4 text-sm text-muted">{site.phonePlaceholder}</p>
+          )}
+          {settings.email ? (
+            <a href={`mailto:${settings.email}`} className="block text-sm text-muted">
+              {settings.email}
+            </a>
+          ) : (
+            <p className="text-sm text-muted">{site.emailPlaceholder}</p>
+          )}
           <a
-            href={site.instagramUrl}
+            href={settings.instagramUrl}
             className="mt-3 inline-block text-sm text-sun hover:underline"
             target="_blank"
             rel="noreferrer"
           >
-            Instagram {site.instagramHandle}
+            Instagram {settings.instagramHandle}
           </a>
         </div>
         <div>
@@ -70,12 +83,12 @@ export function Footer() {
       <div className="border-t border-white/10">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-5 py-6 md:flex-row md:items-center md:justify-end">
           <a
-            href={site.inShopUrl}
+            href={settings.inShopUrl}
             target="_blank"
             rel="noreferrer"
             className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-white/20 px-4 text-sm font-semibold hover:border-gold"
           >
-            {site.inShopLabel}
+            {settings.inShopLabel}
           </a>
         </div>
         <div className="mx-auto w-full max-w-6xl px-5 pb-8 text-xs leading-5 text-muted">

@@ -2,10 +2,15 @@
 
 import Image from "next/image";
 import { InstagramEmbed, InstagramScript } from "@/components/InstagramEmbed";
-import { gallery } from "@/content/gallery";
+import { gallery as fallbackGallery } from "@/content/gallery";
 import { buzzBoxxInstagramPosts } from "@/src/data/instagram";
 
-export function GalleryMasonry() {
+export function GalleryMasonry({
+  photos = fallbackGallery.map((photo) => ({ ...photo, instagramUrl: "" })),
+}: {
+  photos?: { src: string; alt: string; width: number; height: number; instagramUrl?: string }[];
+}) {
+  const gallery = photos;
   const items: Array<{ key: string; kind: "post" | "photo"; index: number }> = [];
   const count = Math.max(gallery.length, buzzBoxxInstagramPosts.length);
   for (let index = 0; index < count; index += 1) {
@@ -29,13 +34,18 @@ export function GalleryMasonry() {
           return (
             <div key={item.key} className="mb-4 break-inside-avoid overflow-hidden rounded-2xl border border-white/10 bg-card">
               <div className="relative aspect-[3/4]">
-                <Image
-                  src={photo.src}
-                  alt={photo.alt}
-                  fill
-                  className="object-cover"
-                  sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                />
+                {photo.src.startsWith("/") ? (
+                  <Image
+                    src={photo.src}
+                    alt={photo.alt}
+                    fill
+                    className="object-cover"
+                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                  />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={photo.src} alt={photo.alt} className="h-full w-full object-cover" />
+                )}
               </div>
             </div>
           );

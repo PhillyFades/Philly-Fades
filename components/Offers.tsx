@@ -2,10 +2,22 @@ import Link from "next/link";
 import { formatDollars, memberships } from "@/content/pricing";
 import { Card, Eyebrow } from "@/components/ui";
 
-export function MembershipGrid() {
+export function MembershipGrid({
+  plans = memberships,
+}: {
+  plans?: Array<{
+    id: string;
+    name: string;
+    priceMonthlyCents: number;
+    cuts: string;
+    summary: string;
+    perks: string[];
+    featured?: boolean;
+  }>;
+}) {
   return (
     <div className="grid gap-5 md:grid-cols-3">
-      {memberships.map((tier) => (
+      {plans.map((tier) => (
         <Card
           key={tier.id}
           id={tier.id}

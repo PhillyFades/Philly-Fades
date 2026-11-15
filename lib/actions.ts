@@ -3,6 +3,7 @@
 import { addressColumns, formatAddress } from "@/lib/address";
 import { findRequestKind } from "@/content/requests";
 import { findFeePlan, findMembership } from "@/content/pricing";
+import { getPublicCatalog } from "@/lib/cms";
 import { eligibilityAttestation, site } from "@/content/site";
 import { startCheckout } from "@/lib/payments";
 import { getSupabaseAdmin } from "@/lib/supabase";
@@ -67,7 +68,11 @@ async function insertRow(
 }
 
 export async function submitBooking(raw: unknown): Promise<ActionResult> {
-  const parsed = validateBooking(raw);
+  const catalog = await getPublicCatalog();
+  const parsed = validateBooking(raw, {
+    feeIds: catalog.feeChoices.map((item) => item.id),
+    blocks: catalog.blocks,
+  });
   if (!parsed.ok) {
     return {
       ok: false,
@@ -78,7 +83,8 @@ export async function submitBooking(raw: unknown): Promise<ActionResult> {
   }
   if (parsed.value.companyWebsite) return received();
 
-  const plan = findFeePlan(parsed.value.feePlan);
+  const choice = catalog.feeChoices.find((item) => item.id === parsed.value.feePlan);
+  const plan = choice ?? findFeePlan(parsed.value.feePlan);
   const paymentMethod = parsed.value.paymentMethod;
   const status = paymentMethod === "pending_card" ? "pending_payment" : "requested";
 
@@ -128,7 +134,8 @@ export async function submitBooking(raw: unknown): Promise<ActionResult> {
 }
 
 export async function submitMembership(raw: unknown): Promise<ActionResult> {
-  const parsed = validateMembership(raw);
+  const catalog = await getPublicCatalog();
+  const parsed = validateMembership(raw, { tierIds: catalog.plans.map((plan) => plan.id) });
   if (!parsed.ok) {
     return {
       ok: false,
@@ -139,7 +146,11 @@ export async function submitMembership(raw: unknown): Promise<ActionResult> {
   }
   if (parsed.value.companyWebsite) return received();
 
-  const tier = findMembership(parsed.value.tierId);
+  const published = catalog.plans.find((plan) => plan.id === parsed.value.tierId);
+  const fallbackTier = findMembership(parsed.value.tierId);
+  const tier = published
+    ? { id: published.id, name: published.name, priceMonthlyCents: published.priceCents }
+    : fallbackTier;
   if (!tier) {
     return { ok: false, code: "validation", error: "Choose a membership.", fieldErrors: { tierId: "Choose a membership." } };
   }
@@ -196,7 +207,8 @@ export async function submitMembership(raw: unknown): Promise<ActionResult> {
 }
 
 export async function submitEvent(raw: unknown): Promise<ActionResult> {
-  const parsed = validateEvent(raw);
+  const eventCatalog = await getPublicCatalog();
+  const parsed = validateEvent(raw, { blocks: eventCatalog.blocks });
   if (!parsed.ok) {
     return {
       ok: false,
@@ -245,7 +257,8 @@ export async function submitEvent(raw: unknown): Promise<ActionResult> {
 }
 
 export async function submitReferral(raw: unknown): Promise<ActionResult> {
-  const parsed = validateReferral(raw);
+  const referralCatalog = await getPublicCatalog();
+  const parsed = validateReferral(raw, { blocks: referralCatalog.blocks });
   if (!parsed.ok) {
     return {
       ok: false,

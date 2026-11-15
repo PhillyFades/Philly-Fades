@@ -1,4 +1,5 @@
 import { formatAddress, stateCode, type AddressInput } from "@/lib/address";
+import { isDateOpen, type ScheduleBlock } from "@/lib/availability";
 import { demographics, referrerRoles, site } from "@/content/site";
 import { findRequestKind, requestKinds } from "@/content/requests";
 import { feePlans, memberships } from "@/content/pricing";
@@ -150,6 +151,12 @@ function readAddress(data: Record<string, unknown>, errors: FieldErrors): Addres
   return { addressLine1, addressLine2, city, state: state || "PA", zip };
 }
 
+function rejectClosed(value: string, errors: FieldErrors, key: string, blocks?: ScheduleBlock[]) {
+  if (!errors[key] && value && blocks && !isDateOpen(value, blocks)) {
+    errors[key] = "That date is closed. Choose another day.";
+  }
+}
+
 function dateOk(value: string, errors: FieldErrors, key: string, label: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     errors[key] = `Choose a ${label}.`;
@@ -160,7 +167,10 @@ function dateOk(value: string, errors: FieldErrors, key: string, label: string) 
   }
 }
 
-export function validateBooking(raw: unknown): Ok<BookingInput> | Err {
+export function validateBooking(
+  raw: unknown,
+  options?: { feeIds?: string[]; blocks?: ScheduleBlock[] },
+): Ok<BookingInput> | Err {
   const data = record(raw);
   const errors: FieldErrors = {};
   const clientName = text(data.clientName, 120);
@@ -197,7 +207,9 @@ export function validateBooking(raw: unknown): Ok<BookingInput> | Err {
   if (!demographicIds.has(demographicCategory)) {
     errors.demographicCategory = "Choose who the cut is for.";
   }
-  if (!feeIds.has(feePlan)) errors.feePlan = "Choose a plan.";
+  const allowedFees = new Set(options?.feeIds ?? [...feeIds]);
+  if (!allowedFees.has(feePlan)) errors.feePlan = "Choose a plan.";
+  rejectClosed(requestedDate, errors, "requestedDate", options?.blocks);
   if (!checked(data.eligibilityConfirmed)) {
     errors.eligibilityConfirmed = "Confirm that the person cannot travel to a shop.";
   }
@@ -240,7 +252,7 @@ export function validateBooking(raw: unknown): Ok<BookingInput> | Err {
   };
 }
 
-export function validateMembership(raw: unknown): Ok<MembershipInput> | Err {
+export function validateMembership(raw: unknown, options?: { tierIds?: string[] }): Ok<MembershipInput> | Err {
   const data = record(raw);
   const errors: FieldErrors = {};
   const fullName = text(data.fullName, 120);
@@ -255,7 +267,8 @@ export function validateMembership(raw: unknown): Ok<MembershipInput> | Err {
   if (!emailOk(email)) errors.email = "Enter a valid email.";
   if (digits(phone).length < 10) errors.phone = "Enter a 10-digit phone number.";
   if (!countyIds.has(serviceCounty)) errors.serviceCounty = "Choose Philadelphia, Montgomery, or Chester.";
-  if (!tierIds.has(tierId)) errors.tierId = "Choose a membership.";
+  const allowedTiers = new Set(options?.tierIds ?? [...tierIds]);
+  if (!allowedTiers.has(tierId)) errors.tierId = "Choose a membership.";
   if (!checked(data.eligibilityConfirmed)) {
     errors.eligibilityConfirmed = "Confirm that the person cannot travel to a shop.";
   }
@@ -281,7 +294,7 @@ export function validateMembership(raw: unknown): Ok<MembershipInput> | Err {
   };
 }
 
-export function validateEvent(raw: unknown): Ok<EventInput> | Err {
+export function validateEvent(raw: unknown, options?: { blocks?: ScheduleBlock[] }): Ok<EventInput> | Err {
   const data = record(raw);
   const errors: FieldErrors = {};
   const contactName = text(data.contactName, 120);
@@ -306,6 +319,7 @@ export function validateEvent(raw: unknown): Ok<EventInput> | Err {
   if (!requestKindIds.has(eventType) || !kind) errors.requestType = "Choose what you are looking for.";
   if (kind && kind.details.length > 0 && !detailOk) errors.detail = "Choose a detail.";
   dateOk(eventDate, errors, "eventDate", "preferred date");
+  rejectClosed(eventDate, errors, "eventDate", options?.blocks);
   if (!Number.isInteger(slotCount) || slotCount < 1 || slotCount > 24) {
     errors.slotCount = "Enter at least 1 slot, up to 24.";
   }
@@ -348,7 +362,7 @@ const referralPrograms = new Set([
   "sponsor_a_cut",
 ]);
 
-export function validateReferral(raw: unknown): Ok<ReferralInput> | Err {
+export function validateReferral(raw: unknown, options?: { blocks?: ScheduleBlock[] }): Ok<ReferralInput> | Err {
   const data = record(raw);
   const errors: FieldErrors = {};
   const program = text(data.program, 40);
@@ -372,7 +386,10 @@ export function validateReferral(raw: unknown): Ok<ReferralInput> | Err {
   } else if (email && !emailOk(email)) {
     errors.email = "That email does not look complete.";
   }
-  if (preferredDate) dateOk(preferredDate, errors, "preferredDate", "preferred date");
+  if (preferredDate) {
+    dateOk(preferredDate, errors, "preferredDate", "preferred date");
+    rejectClosed(preferredDate, errors, "preferredDate", options?.blocks);
+  }
   if (message.length < 8) errors.message = "Add a short note about the request.";
 
   if (Object.keys(errors).length) return { ok: false, fieldErrors: errors };
