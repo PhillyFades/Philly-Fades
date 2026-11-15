@@ -25,7 +25,7 @@ export type EventPackage = {
 
 export const memberships: MembershipTier[] = [
   {
-    id: "lineup",
+    id: "the-lineup",
     name: "The Lineup",
     priceMonthlyCents: 15000,
     cuts: "1 house-call cut each month",
@@ -39,7 +39,7 @@ export const memberships: MembershipTier[] = [
     ],
   },
   {
-    id: "rotation",
+    id: "the-rotation",
     name: "The Rotation",
     priceMonthlyCents: 27500,
     cuts: "2 house-call cuts each month",
@@ -54,7 +54,7 @@ export const memberships: MembershipTier[] = [
     featured: true,
   },
   {
-    id: "residence",
+    id: "the-residence",
     name: "The Residence",
     priceMonthlyCents: 45000,
     cuts: "4 house-call cuts each month",

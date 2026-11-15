@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/Logo";
-import { communityLinks, nav, site } from "@/content/site";
+import { communityLinks, nav } from "@/content/site";
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -33,9 +33,9 @@ export function Header() {
       }`}
     >
       <div className="mx-auto flex h-20 w-full max-w-6xl items-center justify-between gap-4 px-5">
-        <Link href="/" className="flex items-center gap-3" aria-label="Buzz Boxx PXV home">
-          <Logo priority />
-          <span className="font-display text-lg leading-none tracking-tight text-white">
+        <Link href="/" className="flex min-w-0 items-center gap-2 sm:gap-3" aria-label="Buzz Boxx PXV home">
+          <Logo priority className="h-9 w-[4.5rem] shrink-0 sm:h-11 sm:w-[5.5rem]" />
+          <span className="whitespace-nowrap font-display text-sm leading-none tracking-tight text-white sm:text-lg">
             Buzz Boxx <span className="text-sun">PXV</span>
           </span>
         </Link>
@@ -53,37 +53,28 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 lg:flex">
-          <a
-            href={site.inShopUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex min-h-11 items-center rounded-full border border-white/20 px-4 text-sm font-semibold text-white hover:border-gold"
-          >
-            {site.inShopLabel}
-          </a>
+        <div className="flex items-center gap-2">
           <Link
             href="/book"
-            className="inline-flex min-h-11 items-center rounded-full bg-sun px-5 text-sm font-semibold text-ink hover:bg-[#ffd45a]"
+            className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full bg-sun px-4 text-sm font-semibold text-ink hover:bg-[#ffd45a] sm:px-5"
           >
-            Book a house call
+            Book Now
           </Link>
+          <button
+            type="button"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 lg:hidden"
+            aria-expanded={open}
+            aria-controls="mobile-nav"
+            onClick={() => setOpenPath(open ? null : pathname)}
+          >
+            <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
+            <span aria-hidden className="flex flex-col gap-1.5">
+              <span className="block h-0.5 w-5 bg-white" />
+              <span className="block h-0.5 w-5 bg-white" />
+              <span className="block h-0.5 w-5 bg-sun" />
+            </span>
+          </button>
         </div>
-
-        <button
-          type="button"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 lg:hidden"
-          aria-expanded={open}
-          aria-controls="mobile-nav"
-          onClick={() => setOpenPath(open ? null : pathname)}
-        >
-          <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
-          <span aria-hidden className="flex flex-col gap-1.5">
-            <span className="block h-0.5 w-5 bg-white" />
-            <span className="block h-0.5 w-5 bg-white" />
-            <span className="block h-0.5 w-5 bg-sun" />
-          </span>
-        </button>
       </div>
 
       {open ? (
@@ -104,16 +95,8 @@ export function Header() {
               href="/book"
               className="mt-2 inline-flex min-h-12 items-center justify-center rounded-full bg-sun px-5 font-semibold text-ink"
             >
-              Book a house call
+              Book Now
             </Link>
-            <a
-              href={site.inShopUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex min-h-12 items-center justify-center rounded-full border border-gold/80 px-5 font-semibold"
-            >
-              {site.inShopLabel}
-            </a>
           </div>
         </nav>
       ) : null}

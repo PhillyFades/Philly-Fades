@@ -172,7 +172,7 @@ function DemographicSelect({ error, defaultValue }: { error?: string; defaultVal
 function EligibilityBox({ error }: { error?: string }) {
   return (
     <div>
-      <label className="flex items-start gap-3 text-sm leading-6 text-white" htmlFor="eligibilityConfirmed">
+      <label className="check-row text-sm leading-6 text-white" htmlFor="eligibilityConfirmed">
         <input
           id="eligibilityConfirmed"
           name="eligibilityConfirmed"
@@ -256,7 +256,7 @@ export function BookingForm({ configured }: { configured: boolean }) {
         Example rates. A self-pay request is stored as pending payment until Stripe is connected. Nothing is charged from this form.
       </p>
       <EligibilityBox error={errors.eligibilityConfirmed} />
-      <label className="flex items-start gap-3 text-sm leading-6" htmlFor="bookingOnBehalf">
+      <label className="check-row text-sm leading-6" htmlFor="bookingOnBehalf">
         <input
           id="bookingOnBehalf"
           name="bookingOnBehalf"
@@ -327,7 +327,8 @@ export function BookingForm({ configured }: { configured: boolean }) {
 
 export function MembershipForm({ configured }: { configured: boolean }) {
   const params = useSearchParams();
-  const defaultTier = params.get("tier") ?? memberships[1]?.id ?? "";
+  const requestedPlan = params.get("plan") ?? params.get("tier") ?? "";
+  const defaultTier = memberships.some((tier) => tier.id === requestedPlan) ? requestedPlan : "";
   const { errors, result, pending, onSubmit } = useForm(validateMembership, submitMembership);
 
   return (
@@ -337,6 +338,9 @@ export function MembershipForm({ configured }: { configured: boolean }) {
       <Honeypot />
       <Field label="Membership" name="tierId" error={errors.tierId}>
         <select {...inputProps("tierId", errors.tierId)} defaultValue={defaultTier} required>
+          <option value="" disabled>
+            Choose a membership
+          </option>
           {memberships.map((tier) => (
             <option key={tier.id} value={tier.id}>
               {tier.name} · {formatDollars(tier.priceMonthlyCents)}/mo · {tier.cuts}
@@ -436,7 +440,7 @@ export function EventForm({ configured }: { configured: boolean }) {
       <Field label="Notes" name="notes" error={errors.notes}>
         <textarea {...inputProps("notes", errors.notes)} rows={4} />
       </Field>
-      <label className="flex items-start gap-3 text-sm leading-6" htmlFor="complianceAcknowledged">
+      <label className="check-row text-sm leading-6" htmlFor="complianceAcknowledged">
         <input id="complianceAcknowledged" name="complianceAcknowledged" type="checkbox" className="mt-1 h-5 w-5 accent-sun" required />
         <span>
           I understand Buzz Boxx PXV is not a licensed mobile shop. This request will be reviewed under 49 Pa. Code § 3.61 and may be declined if the setting is outside the statute.
@@ -564,13 +568,13 @@ export function VendorForm({ configured }: { configured: boolean }) {
       <Field label="Populations you serve" name="populations" error={errors.populations}>
         <input {...inputProps("populations", errors.populations)} />
       </Field>
-      <label className="flex items-center gap-3 text-sm">
-        <input type="checkbox" name="needsCoi" className="h-5 w-5 accent-sun" />
-        We need a certificate of insurance
+      <label className="check-row text-sm">
+        <input type="checkbox" name="needsCoi" className="accent-sun" />
+        <span>We need a certificate of insurance</span>
       </label>
-      <label className="flex items-center gap-3 text-sm">
-        <input type="checkbox" name="needsW9" className="h-5 w-5 accent-sun" />
-        We need a W-9
+      <label className="check-row text-sm">
+        <input type="checkbox" name="needsW9" className="accent-sun" />
+        <span>We need a W-9</span>
       </label>
       <Field label="What should a partnership cover?" name="message" error={errors.message}>
         <textarea {...inputProps("message", errors.message)} rows={4} required />

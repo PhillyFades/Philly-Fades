@@ -4,6 +4,7 @@ import { siteUrl } from "@/content/site";
 const paths = [
   "/",
   "/memberships",
+  "/memberships/request",
   "/events",
   "/book",
   "/about",

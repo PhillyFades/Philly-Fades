@@ -30,7 +30,7 @@ export function MembershipGrid() {
             ))}
           </ul>
           <Link
-            href={`/memberships?tier=${tier.id}#request`}
+            href={`/memberships/request?plan=${tier.id}`}
             className="mt-6 inline-flex min-h-11 items-center rounded-full bg-sun px-5 text-sm font-semibold text-ink"
           >
             Request {tier.name}
