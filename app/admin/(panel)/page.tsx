@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { AdminTitle, StatusBadge, Warning } from "@/components/admin/ui";
+import { PageHeading } from "@/components/admin/fields";
+import { StatusBadge, Warning } from "@/components/admin/ui";
 import { loadDashboard } from "@/lib/admin/data";
 
 export default function DashboardPage() {
@@ -23,7 +24,7 @@ async function Dashboard() {
           </Link>
         </p>
       ) : null}
-      <AdminTitle title="This week" lede={`New requests from ${data.weekLabel}, America/New_York.`} />
+      <PageHeading title="This week" lede={`New requests from ${data.weekLabel}, America/New_York.`} />
       <Warning message={data.warning} />
       <div className="grid gap-4 sm:grid-cols-3">
         {[
@@ -31,9 +32,9 @@ async function Dashboard() {
           ["Memberships", data.counts.memberships, "/admin/memberships"],
           ["Event and program requests", data.counts.requests, "/admin/requests"],
         ].map(([label, count, href]) => (
-          <Link key={String(href)} href={String(href)} className="rounded-2xl border border-white/10 bg-card p-5 hover:border-sun/50">
-            <p className="font-display text-5xl text-sun">{count}</p>
-            <p className="mt-2 text-sm text-white">{label}</p>
+          <Link key={String(href)} href={String(href)} className="rounded-xl border border-white/10 bg-card p-3 hover:border-sun/50">
+            <p className="font-display text-4xl leading-none text-sun">{count}</p>
+            <p className="mt-1.5 text-sm text-white">{label}</p>
           </Link>
         ))}
       </div>

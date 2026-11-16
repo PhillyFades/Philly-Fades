@@ -1,8 +1,10 @@
 import { Suspense } from "react";
 import { AdminForm } from "@/components/admin/Form";
-import { AdminTitle, Warning } from "@/components/admin/ui";
+import { EditDrawer } from "@/components/admin/drawer";
+import { AdminCheck, AdminCheckRow, AdminField, AdminFields, Badge, PageHeading, RecordCard, RecordGrid } from "@/components/admin/fields";
+import { Warning } from "@/components/admin/ui";
 import { deleteEvent, saveEvent } from "@/lib/admin/actions";
-import { loadSiteEvents } from "@/lib/admin/data";
+import { loadSiteEvents, type EventRow } from "@/lib/admin/data";
 
 export default function EventsAdminPage() {
   return (
@@ -16,88 +18,71 @@ async function EventsAdmin() {
   const { rows, warning } = await loadSiteEvents();
   return (
     <>
-      <AdminTitle title="Events" lede="Past and upcoming days. An empty upcoming list keeps the public “new dates soon” line." />
+      <PageHeading
+        title="Events"
+        lede="Past and upcoming days. An empty upcoming list keeps the public “new dates soon” line."
+        action={
+          <EditDrawer title="New event" trigger="+ New event" tone="primary">
+            <EventForm />
+          </EditDrawer>
+        }
+      />
       <Warning message={warning} />
-      <div className="space-y-6">
+      <RecordGrid>
         {rows.map((item) => (
-          <article key={item.id} className="rounded-2xl border border-white/10 bg-card p-5">
-            <AdminForm action={saveEvent}>
-              <input type="hidden" name="id" value={item.id} />
-              <EventFields item={item} />
-            </AdminForm>
-            <div className="mt-3">
-              <AdminForm action={deleteEvent} confirmText="Delete this event?" submitLabel="Delete">
-                <input type="hidden" name="id" value={item.id} />
-              </AdminForm>
+          <RecordCard key={item.id}>
+            <div className="flex items-start justify-between gap-2">
+              <h2 className="font-display text-xl leading-none">{item.title}</h2>
+              <div className="flex shrink-0 items-center gap-2">
+                <EditDrawer title={`Edit ${item.title}`}>
+                  <EventForm item={item} />
+                </EditDrawer>
+                <AdminForm action={deleteEvent} confirmText="Delete this event?" submitLabel="Delete" tone="danger" compact>
+                  <input type="hidden" name="id" value={item.id} />
+                </AdminForm>
+              </div>
             </div>
-          </article>
+            <p className="mt-2 text-sm text-white">{item.event_date || "Date not set"}</p>
+            {item.location ? <p className="mt-1 line-clamp-1 text-sm text-muted">{item.location}</p> : null}
+            <p className="mt-1 line-clamp-2 text-sm leading-5 text-muted">{item.description}</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <Badge tone={item.kind === "upcoming" ? "sun" : "gold"}>{item.kind}</Badge>
+              <Badge tone={item.published ? "sun" : "muted"}>{item.published ? "Published" : "Hidden"}</Badge>
+              <Badge tone="muted">Sort {item.sort_order}</Badge>
+            </div>
+          </RecordCard>
         ))}
-      </div>
-      <h2 className="mb-4 mt-12 font-display text-2xl leading-none">New event</h2>
-      <div className="max-w-xl rounded-2xl border border-white/10 p-5">
-        <AdminForm action={saveEvent} submitLabel="Add event">
-          <EventFields />
-        </AdminForm>
-      </div>
+      </RecordGrid>
     </>
   );
 }
 
-function EventFields({
-  item,
-}: {
-  item?: {
-    title: string;
-    event_date: string;
-    location: string;
-    description: string;
-    instagram_url: string;
-    image_url: string;
-    kind: string;
-    published: boolean;
-    sort_order: number;
-  };
-}) {
+function EventForm({ item }: { item?: EventRow }) {
   return (
-    <>
-      <label className="block text-sm">
-        Title
-        <input name="title" defaultValue={item?.title ?? ""} required className="mt-2" />
-      </label>
-      <label className="block text-sm">
-        Date
-        <input name="event_date" defaultValue={item?.event_date ?? ""} className="mt-2" />
-      </label>
-      <label className="block text-sm">
-        Location
-        <input name="location" defaultValue={item?.location ?? ""} className="mt-2" />
-      </label>
-      <label className="block text-sm">
-        Description
-        <textarea name="description" rows={4} defaultValue={item?.description ?? ""} className="mt-2" />
-      </label>
-      <label className="block text-sm">
-        Instagram link
-        <input name="instagram_url" defaultValue={item?.instagram_url ?? ""} className="mt-2" />
-      </label>
-      <label className="block text-sm">
-        Image URL
-        <input name="image_url" defaultValue={item?.image_url ?? ""} className="mt-2" />
-      </label>
-      <label className="block text-sm">
-        Kind
-        <select name="kind" defaultValue={item?.kind ?? "past"} className="mt-2">
-          <option value="past">Past</option>
-          <option value="upcoming">Upcoming</option>
-        </select>
-      </label>
-      <label className="block text-sm">
-        Sort order
-        <input name="sort_order" defaultValue={String(item?.sort_order ?? 0)} className="mt-2" />
-      </label>
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="published" defaultChecked={item?.published ?? true} /> Published
-      </label>
-    </>
+    <AdminForm action={saveEvent}>
+      {item ? <input type="hidden" name="id" value={item.id} /> : null}
+      <AdminField label="Title" name="title" defaultValue={item?.title} required />
+      <AdminFields>
+        <AdminField label="Date" name="event_date" defaultValue={item?.event_date} />
+        <AdminField
+          label="Kind"
+          name="kind"
+          width="narrow"
+          defaultValue={item?.kind ?? "past"}
+          options={[
+            { value: "past", label: "Past" },
+            { value: "upcoming", label: "Upcoming" },
+          ]}
+        />
+        <AdminField label="Sort order" name="sort_order" width="narrow" defaultValue={item?.sort_order ?? 0} />
+        <AdminField label="Location" name="location" defaultValue={item?.location} span={3} />
+      </AdminFields>
+      <AdminField label="Description" name="description" defaultValue={item?.description} rows={3} />
+      <AdminField label="Instagram link" name="instagram_url" defaultValue={item?.instagram_url} />
+      <AdminField label="Image URL" name="image_url" defaultValue={item?.image_url} />
+      <AdminCheckRow>
+        <AdminCheck name="published" label="Published" defaultChecked={item?.published ?? true} />
+      </AdminCheckRow>
+    </AdminForm>
   );
 }

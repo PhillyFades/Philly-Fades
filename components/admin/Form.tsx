@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState, type FormEvent, type ReactNode } from "react";
+import { useDrawerClose } from "@/components/admin/drawer";
 import type { AdminResult } from "@/lib/admin/actions";
 
 export function AdminForm({
@@ -8,14 +10,21 @@ export function AdminForm({
   children,
   confirmText,
   submitLabel = "Save",
+  tone = "primary",
+  compact = false,
+  cancelHref,
 }: {
   action: (formData: FormData) => Promise<AdminResult>;
   children: ReactNode;
   confirmText?: string;
   submitLabel?: string;
+  tone?: "primary" | "danger";
+  compact?: boolean;
+  cancelHref?: string;
 }) {
   const [toast, setToast] = useState<{ ok: boolean; message: string } | null>(null);
   const [pending, setPending] = useState(false);
+  const closeDrawer = useDrawerClose();
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -24,18 +33,31 @@ export function AdminForm({
     const result = await action(new FormData(event.currentTarget));
     setPending(false);
     setToast(result);
+    if (result.ok && closeDrawer) window.setTimeout(closeDrawer, 600);
   }
 
+  const buttonClass =
+    tone === "danger"
+      ? "inline-flex h-8 items-center rounded-full border border-[#c45c5c] bg-transparent px-3 text-xs font-semibold text-[#ffb4b4] hover:bg-[#3a1414] disabled:opacity-60"
+      : "inline-flex h-9 items-center rounded-full bg-sun px-4 text-sm font-semibold text-ink disabled:opacity-60";
+
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} className={compact ? "inline-flex" : "space-y-4"}>
       {children}
-      <button
-        type="submit"
-        disabled={pending}
-        className="inline-flex min-h-11 items-center rounded-full bg-sun px-5 text-sm font-semibold text-ink disabled:opacity-60"
-      >
-        {pending ? "Saving…" : submitLabel}
-      </button>
+      <div className="flex flex-wrap items-center gap-3">
+        <button type="submit" disabled={pending} className={buttonClass}>
+          {pending ? "Saving…" : submitLabel}
+        </button>
+        {cancelHref ? (
+          <Link href={cancelHref} className="inline-flex h-9 items-center text-sm text-muted hover:text-white">
+            Cancel
+          </Link>
+        ) : closeDrawer && tone !== "danger" ? (
+          <button type="button" onClick={closeDrawer} className="inline-flex h-9 items-center text-sm text-muted hover:text-white">
+            Cancel
+          </button>
+        ) : null}
+      </div>
       {toast ? (
         <p
           role="status"

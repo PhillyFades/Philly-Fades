@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { AdminTitle, DataTable, StatusBadge, Td, Th, Warning } from "@/components/admin/ui";
+import { Badge, PageHeading, RecordCard, RecordGrid } from "@/components/admin/fields";
+import { StatusBadge, Warning } from "@/components/admin/ui";
 import { formatWhen } from "@/lib/admin/dates";
 import { loadBookings } from "@/lib/admin/data";
 
@@ -21,12 +22,12 @@ async function Bookings({ searchParams }: { searchParams: Promise<{ status?: str
   const { rows, warning } = await loadBookings(filters);
   return (
     <>
-      <AdminTitle title="House calls" lede="The dispatch log is the same list: every row is a visit leaving from Barbers on Broad." />
+      <PageHeading title="House calls" lede="Every row is a visit leaving from Barbers on Broad." />
       <Warning message={warning} />
-      <form className="mb-6 grid gap-3 sm:grid-cols-4" action="/admin/bookings">
-        <label className="text-sm">
+      <form className="mb-4 grid grid-cols-2 items-end gap-2 sm:grid-cols-4" action="/admin/bookings">
+        <label className="text-xs text-muted">
           Status
-          <select name="status" defaultValue={filters.status || ""} className="mt-2">
+          <select name="status" defaultValue={filters.status || ""} className="mt-1">
             <option value="">Any</option>
             <option value="new">New</option>
             <option value="confirmed">Confirmed</option>
@@ -35,75 +36,40 @@ async function Bookings({ searchParams }: { searchParams: Promise<{ status?: str
             <option value="cancelled">Cancelled</option>
           </select>
         </label>
-        <label className="text-sm">
+        <label className="text-xs text-muted">
           From
-          <input type="date" name="from" defaultValue={filters.from || ""} className="mt-2" />
+          <input type="date" name="from" defaultValue={filters.from || ""} className="mt-1" />
         </label>
-        <label className="text-sm">
+        <label className="text-xs text-muted">
           To
-          <input type="date" name="to" defaultValue={filters.to || ""} className="mt-2" />
+          <input type="date" name="to" defaultValue={filters.to || ""} className="mt-1" />
         </label>
-        <button type="submit" className="mt-7 inline-flex min-h-11 items-center justify-center rounded-full border border-white/20 px-4 text-sm">
+        <button type="submit" className="inline-flex h-9 items-center justify-center rounded-full border border-white/20 px-3 text-sm">
           Filter
         </button>
       </form>
-      <DataTable>
-        <thead>
-          <tr>
-            <Th>When</Th>
-            <Th>Who</Th>
-            <Th>County</Th>
-            <Th>Plan</Th>
-            <Th>Status</Th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.id}>
-              <Td>
-                <Link href={`/admin/bookings/${row.id}`} className="text-sun underline decoration-sun decoration-2 underline-offset-4">
-                  {formatWhen(row.scheduled_date || row.requested_date, row.scheduled_time || row.requested_time)}
-                </Link>
-              </Td>
-              <Td>{row.client_name}</Td>
-              <Td>{row.service_county}</Td>
-              <Td>{row.fee_plan}</Td>
-              <Td>
-                <StatusBadge status={row.status} />
-              </Td>
-            </tr>
-          ))}
-        </tbody>
-      </DataTable>
-      <h2 className="mb-4 mt-12 font-display text-2xl leading-none">Dispatch log</h2>
-      <DataTable>
-        <thead>
-          <tr>
-            <Th>Logged</Th>
-            <Th>Visit</Th>
-            <Th>Dispatched from</Th>
-            <Th>Barber</Th>
-            <Th>Status</Th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={`log-${row.id}`}>
-              <Td>{row.created_at.slice(0, 10)}</Td>
-              <Td>
-                <Link href={`/admin/bookings/${row.id}`} className="text-sun hover:underline">
-                  {row.client_name}
-                </Link>
-              </Td>
-              <Td>{row.dispatched_from}</Td>
-              <Td>{row.barber_name}</Td>
-              <Td>
-                <StatusBadge status={row.status} />
-              </Td>
-            </tr>
-          ))}
-        </tbody>
-      </DataTable>
+      <RecordGrid>
+        {rows.map((row) => (
+          <RecordCard key={row.id}>
+            <div className="flex items-start justify-between gap-2">
+              <Link href={`/admin/bookings/${row.id}`} className="font-display text-xl leading-none text-sun underline decoration-sun decoration-2 underline-offset-4">
+                {row.client_name}
+              </Link>
+              <StatusBadge status={row.status} />
+            </div>
+            <p className="mt-2 text-sm text-white">{formatWhen(row.scheduled_date || row.requested_date, row.scheduled_time || row.requested_time)}</p>
+            <p className="mt-1 text-sm text-muted">
+              {row.service_county} · {row.fee_plan}
+            </p>
+            <p className="mt-1 text-xs text-muted">
+              {row.barber_name} · {row.dispatched_from}
+            </p>
+            <div className="mt-2">
+              <Badge tone="muted">Logged {row.created_at.slice(0, 10)}</Badge>
+            </div>
+          </RecordCard>
+        ))}
+      </RecordGrid>
     </>
   );
 }

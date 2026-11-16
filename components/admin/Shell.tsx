@@ -21,7 +21,7 @@ export function AdminShell({ email, children }: { email: string; children: React
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-ink lg:grid lg:grid-cols-[240px_1fr]">
+    <div className="admin-ui min-h-screen bg-ink lg:grid lg:grid-cols-[240px_1fr]">
       <aside className={`${open ? "block" : "hidden"} border-b border-white/10 bg-card lg:block lg:border-b-0 lg:border-r`}>
         <div className="px-5 py-6">
           <p className="font-display text-xl leading-none">
@@ -58,7 +58,7 @@ export function AdminShell({ email, children }: { email: string; children: React
             </button>
           </form>
         </header>
-        <main id="main" className="px-5 py-8">
+        <main id="main" className="px-4 py-5 sm:px-5">
           {children}
         </main>
       </div>

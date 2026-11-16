@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { AdminForm } from "@/components/admin/Form";
-import { deleteGalleryItem, saveGalleryItem } from "@/lib/admin/actions";
+import { AdminCheck, AdminCheckRow, AdminField, AdminFields } from "@/components/admin/fields";
+import { saveGalleryItem } from "@/lib/admin/actions";
 import { createSupabaseBrowser } from "@/lib/supabase/browser";
 
 export function GalleryEditor({
@@ -41,52 +42,25 @@ export function GalleryEditor({
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-card p-5">
-      <AdminForm action={saveGalleryItem}>
-        {item ? <input type="hidden" name="id" value={item.id} /> : null}
-        <input type="hidden" name="image_url" value={imageUrl} />
-        <label className="block text-sm">
-          Image file
-          <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="mt-2" onChange={(event) => onFile(event.target.files?.[0])} />
-        </label>
-        <label className="block text-sm">
-          Image or Instagram URL
-          <input name="image_url_visible" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} className="mt-2" />
-        </label>
-        <label className="block text-sm">
-          Alt text
-          <input name="alt" defaultValue={item?.alt ?? ""} className="mt-2" />
-        </label>
-        <label className="block text-sm">
-          Instagram URL
-          <input name="instagram_url" defaultValue={item?.instagram_url ?? ""} className="mt-2" />
-        </label>
-        <div className="grid grid-cols-2 gap-3">
-          <label className="block text-sm">
-            Width
-            <input name="width" defaultValue={String(item?.width ?? 1200)} className="mt-2" />
-          </label>
-          <label className="block text-sm">
-            Height
-            <input name="height" defaultValue={String(item?.height ?? 1500)} className="mt-2" />
-          </label>
-        </div>
-        <label className="block text-sm">
-          Sort order
-          <input name="sort_order" defaultValue={String(item?.sort_order ?? 0)} className="mt-2" />
-        </label>
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" name="published" defaultChecked={item?.published ?? true} /> Published
-        </label>
-        {uploadNote ? <p className="text-sm text-muted">{uploadNote}</p> : null}
-      </AdminForm>
-      {item ? (
-        <div className="mt-3">
-          <AdminForm action={deleteGalleryItem} confirmText="Remove this gallery item?" submitLabel="Delete">
-            <input type="hidden" name="id" value={item.id} />
-          </AdminForm>
-        </div>
-      ) : null}
-    </div>
+    <AdminForm action={saveGalleryItem}>
+      {item ? <input type="hidden" name="id" value={item.id} /> : null}
+      <input type="hidden" name="image_url" value={imageUrl} />
+      <label className="block text-xs text-muted">
+        Image file
+        <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="mt-1" onChange={(event) => onFile(event.target.files?.[0])} />
+      </label>
+      <AdminField label="Image or Instagram URL" name="image_url_visible" value={imageUrl} onValue={setImageUrl} />
+      <AdminField label="Alt text" name="alt" defaultValue={item?.alt ?? ""} />
+      <AdminField label="Instagram URL" name="instagram_url" defaultValue={item?.instagram_url ?? ""} />
+      <AdminFields>
+        <AdminField label="Width" name="width" width="narrow" defaultValue={item?.width ?? 1200} />
+        <AdminField label="Height" name="height" width="narrow" defaultValue={item?.height ?? 1500} />
+        <AdminField label="Sort order" name="sort_order" width="narrow" defaultValue={item?.sort_order ?? 0} />
+      </AdminFields>
+      <AdminCheckRow>
+        <AdminCheck name="published" label="Published" defaultChecked={item?.published ?? true} />
+      </AdminCheckRow>
+      {uploadNote ? <p className="text-xs text-muted">{uploadNote}</p> : null}
+    </AdminForm>
   );
 }

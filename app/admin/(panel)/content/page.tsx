@@ -15,9 +15,9 @@ export default function ContentPage() {
       <AdminTitle title="Content" lede="Edits publish to the public pages. If the tables are not there yet, the site keeps the current copy." />
       <div className="grid gap-4 md:grid-cols-2">
         {sections.map(([title, href, body]) => (
-          <Link key={href} href={href} className="rounded-2xl border border-white/10 bg-card p-5 hover:border-sun/50">
-            <h2 className="font-display text-2xl leading-none">{title}</h2>
-            <p className="mt-3 text-sm leading-6 text-muted">{body}</p>
+          <Link key={href} href={href} className="rounded-xl border border-white/10 bg-card p-3 hover:border-sun/50">
+            <h2 className="font-display text-xl leading-none">{title}</h2>
+            <p className="mt-1.5 text-sm leading-5 text-muted">{body}</p>
           </Link>
         ))}
       </div>

@@ -1,8 +1,11 @@
 import { Suspense } from "react";
 import { AdminForm } from "@/components/admin/Form";
-import { AdminTitle, Warning } from "@/components/admin/ui";
+import { EditDrawer } from "@/components/admin/drawer";
+import { AdminCheck, AdminCheckRow, AdminField, AdminFields, Badge, PageHeading, ReadOnlyField, ReadOnlyGrid, RecordCard, RecordGrid } from "@/components/admin/fields";
+import { Warning } from "@/components/admin/ui";
+import { formatDollars } from "@/content/pricing";
 import { deletePlan, saveHouseCallFee, savePlan } from "@/lib/admin/actions";
-import { loadPlans, loadSettings } from "@/lib/admin/data";
+import { loadPlans, loadSettings, type PlanRow } from "@/lib/admin/data";
 
 export default function PlansPage() {
   return (
@@ -17,114 +20,88 @@ async function Plans() {
   const fee = settings.row.house_call_fee_cents;
   return (
     <>
-      <AdminTitle title="Membership plans and the house-call fee" lede="Stripe price IDs stay empty until checkout is connected." />
+      <PageHeading
+        title="Prices"
+        lede="Membership plans and the single house-call fee. Stripe price IDs stay empty until checkout is connected."
+        action={
+          <EditDrawer title="New plan" trigger="+ New plan" tone="primary">
+            <PlanForm />
+          </EditDrawer>
+        }
+      />
       <Warning message={warning || settings.warning} />
-      <div className="mb-8 max-w-xl rounded-2xl border border-white/10 bg-card p-5">
-        <h2 className="font-display text-2xl leading-none">Single house call</h2>
-        <div className="mt-4">
-          <AdminForm action={saveHouseCallFee}>
-            <label className="block text-sm">
-              Base fee in dollars
-              <input name="house_call_fee" inputMode="decimal" defaultValue={fee == null ? "" : String(fee / 100)} className="mt-2" placeholder="Leave blank to confirm the fee before the visit" />
-            </label>
-            <label className="block text-sm">
-              Stripe price ID
-              <input name="stripe_house_call_price_id" defaultValue={settings.row.stripe_house_call_price_id} className="mt-2" placeholder="Later" />
-            </label>
+      <RecordGrid>
+        <RecordCard>
+          <div className="flex items-start justify-between gap-2">
+            <h2 className="font-display text-xl leading-none">Single house call</h2>
+            <EditDrawer title="House-call fee">
+              <AdminForm action={saveHouseCallFee}>
+                <AdminFields>
+                  <AdminField label="Fee in dollars" name="house_call_fee" width="narrow" inputMode="decimal" defaultValue={fee == null ? "" : fee / 100} placeholder="Blank to confirm later" />
+                  <AdminField label="Stripe price ID" name="stripe_house_call_price_id" defaultValue={settings.row.stripe_house_call_price_id} placeholder="Later" span={2} />
+                </AdminFields>
+              </AdminForm>
+            </EditDrawer>
+          </div>
+          <ReadOnlyGrid>
+            <ReadOnlyField label="Price" value={fee == null ? "Confirmed before the visit" : formatDollars(fee)} />
+            <ReadOnlyField label="Stripe" value={settings.row.stripe_house_call_price_id || "Later"} />
+          </ReadOnlyGrid>
+        </RecordCard>
+        {rows.map((plan) => (
+          <PlanCard key={plan.id} plan={plan} />
+        ))}
+      </RecordGrid>
+    </>
+  );
+}
+
+function PlanCard({ plan }: { plan: PlanRow }) {
+  return (
+    <RecordCard>
+      <div className="flex items-start justify-between gap-2">
+        <h2 className="font-display text-xl leading-none">{plan.name}</h2>
+        <div className="flex shrink-0 items-center gap-2">
+          <EditDrawer title={`Edit ${plan.name}`}>
+            <PlanForm plan={plan} />
+          </EditDrawer>
+          <AdminForm action={deletePlan} confirmText={`Delete ${plan.name}?`} submitLabel="Delete" tone="danger" compact>
+            <input type="hidden" name="id" value={plan.id} />
           </AdminForm>
         </div>
       </div>
-      <div className="space-y-6">
-        {rows.map((plan) => (
-          <article key={plan.id} className="rounded-2xl border border-white/10 bg-card p-5">
-            <AdminForm action={savePlan}>
-              <input type="hidden" name="id" value={plan.id} />
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="block text-sm">
-                  Name
-                  <input name="name" defaultValue={plan.name} className="mt-2" />
-                </label>
-                <label className="block text-sm">
-                  Price (dollars)
-                  <input name="price" inputMode="decimal" defaultValue={String(plan.price_cents / 100)} className="mt-2" />
-                </label>
-                <label className="block text-sm">
-                  Cadence
-                  <input name="cadence" defaultValue={plan.cadence} className="mt-2" />
-                </label>
-                <label className="block text-sm">
-                  Sort order
-                  <input name="sort_order" defaultValue={String(plan.sort_order)} className="mt-2" />
-                </label>
-              </div>
-              <label className="block text-sm">
-                What it includes
-                <input name="cuts" defaultValue={plan.cuts} className="mt-2" />
-              </label>
-              <label className="block text-sm">
-                Summary
-                <textarea name="summary" rows={3} defaultValue={plan.summary} className="mt-2" />
-              </label>
-              <label className="block text-sm">
-                Features, one per line
-                <textarea name="features" rows={5} defaultValue={plan.features.join("\n")} className="mt-2" />
-              </label>
-              <label className="block text-sm">
-                Stripe price ID
-                <input name="stripe_price_id" defaultValue={plan.stripe_price_id} className="mt-2" placeholder="Later" />
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" name="active" defaultChecked={plan.active} /> Active
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" name="featured" defaultChecked={plan.featured} /> Featured
-              </label>
-            </AdminForm>
-            <div className="mt-3">
-              <AdminForm action={deletePlan} confirmText={`Remove ${plan.name}?`} submitLabel="Delete plan">
-                <input type="hidden" name="id" value={plan.id} />
-              </AdminForm>
-            </div>
-          </article>
-        ))}
+      <p className="mt-2 text-sm text-white">
+        {formatDollars(plan.price_cents)} <span className="text-muted">/ {plan.cadence}</span>
+      </p>
+      <p className="mt-1 line-clamp-2 text-sm leading-5 text-muted">{plan.cuts || plan.summary}</p>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        <Badge tone={plan.active ? "sun" : "muted"}>{plan.active ? "Active" : "Inactive"}</Badge>
+        {plan.featured ? <Badge>Featured</Badge> : null}
+        <Badge tone="muted">Sort {plan.sort_order}</Badge>
       </div>
-      <h2 className="mb-4 mt-12 font-display text-2xl leading-none">New plan</h2>
-      <div className="max-w-xl rounded-2xl border border-white/10 p-5">
-        <AdminForm action={savePlan} submitLabel="Add plan">
-          <label className="block text-sm">
-            Id
-            <input name="id" placeholder="the-new-plan" className="mt-2" required />
-          </label>
-          <label className="block text-sm">
-            Name
-            <input name="name" className="mt-2" required />
-          </label>
-          <label className="block text-sm">
-            Price (dollars)
-            <input name="price" inputMode="decimal" className="mt-2" required />
-          </label>
-          <input type="hidden" name="cadence" value="monthly" />
-          <label className="block text-sm">
-            What it includes
-            <input name="cuts" className="mt-2" />
-          </label>
-          <label className="block text-sm">
-            Summary
-            <textarea name="summary" rows={3} className="mt-2" />
-          </label>
-          <label className="block text-sm">
-            Features, one per line
-            <textarea name="features" rows={4} className="mt-2" />
-          </label>
-          <label className="block text-sm">
-            Stripe price ID
-            <input name="stripe_price_id" className="mt-2" placeholder="Later" />
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" name="active" defaultChecked /> Active
-          </label>
-        </AdminForm>
-      </div>
-    </>
+    </RecordCard>
+  );
+}
+
+function PlanForm({ plan }: { plan?: PlanRow }) {
+  return (
+    <AdminForm action={savePlan}>
+      {plan ? <input type="hidden" name="id" value={plan.id} /> : null}
+      <AdminFields>
+        {plan ? null : <AdminField label="Id" name="id" width="narrow" placeholder="the-new-plan" required />}
+        <AdminField label="Name" name="name" defaultValue={plan?.name} required span={plan ? 2 : 1} />
+        <AdminField label="Price" name="price" width="narrow" inputMode="decimal" defaultValue={plan ? plan.price_cents / 100 : ""} required />
+        <AdminField label="Cadence" name="cadence" width="narrow" defaultValue={plan?.cadence || "monthly"} />
+        <AdminField label="Sort order" name="sort_order" width="narrow" defaultValue={plan?.sort_order ?? 0} />
+        <AdminField label="What it includes" name="cuts" defaultValue={plan?.cuts} span={3} />
+        <AdminField label="Summary" name="summary" defaultValue={plan?.summary} rows={2} span={3} />
+        <AdminField label="Features, one per line" name="features" defaultValue={plan?.features.join("\n")} rows={4} span={3} />
+        <AdminField label="Stripe price ID" name="stripe_price_id" defaultValue={plan?.stripe_price_id} placeholder="Later" span={2} />
+      </AdminFields>
+      <AdminCheckRow>
+        <AdminCheck name="active" label="Active" defaultChecked={plan?.active ?? true} />
+        <AdminCheck name="featured" label="Featured" defaultChecked={plan?.featured ?? false} />
+      </AdminCheckRow>
+    </AdminForm>
   );
 }

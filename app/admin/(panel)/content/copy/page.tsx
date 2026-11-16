@@ -1,37 +1,48 @@
 import { Suspense } from "react";
 import { AdminForm } from "@/components/admin/Form";
-import { AdminTitle, Warning } from "@/components/admin/ui";
+import { EditDrawer } from "@/components/admin/drawer";
+import { AdminField, PageHeading, RecordCard, RecordGrid } from "@/components/admin/fields";
+import { Warning } from "@/components/admin/ui";
 import { saveCopy } from "@/lib/admin/actions";
-import { loadCopy } from "@/lib/admin/data";
+import { loadCopy, type CopyRow } from "@/lib/admin/data";
 
 export default function CopyPage() {
   return (
     <Suspense fallback={<p className="text-muted">Loading copy…</p>}>
-      <CopyEditor />
+      <CopyList />
     </Suspense>
   );
 }
 
-async function CopyEditor() {
+async function CopyList() {
   const { rows, warning } = await loadCopy();
   return (
     <>
-      <AdminTitle title="Site copy" lede="Hero lines and section intros. The gold word on a headline is the accent field." />
+      <PageHeading title="Site copy" lede="Hero lines and section intros. The gold word on a headline is the accent field." />
       <Warning message={warning} />
-      <div className="space-y-6">
+      <RecordGrid>
         {rows.map((row) => (
-          <article key={row.key} className="rounded-2xl border border-white/10 bg-card p-5">
-            <AdminForm action={saveCopy}>
-              <input type="hidden" name="key" value={row.key} />
-              <input type="hidden" name="label" value={row.label} />
-              <label className="block text-sm">
-                {row.label}
-                <textarea name="value" rows={4} defaultValue={row.value} className="mt-2" />
-              </label>
-            </AdminForm>
-          </article>
+          <CopyCard key={row.key} row={row} />
         ))}
-      </div>
+      </RecordGrid>
     </>
+  );
+}
+
+function CopyCard({ row }: { row: CopyRow }) {
+  return (
+    <RecordCard>
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-[10px] uppercase tracking-[0.14em] text-gold">{row.key}</p>
+        <EditDrawer title={row.label || row.key}>
+          <AdminForm action={saveCopy}>
+            <input type="hidden" name="key" value={row.key} />
+            <input type="hidden" name="label" value={row.label} />
+            <AdminField label={row.label || row.key} name="value" defaultValue={row.value} rows={4} />
+          </AdminForm>
+        </EditDrawer>
+      </div>
+      <p className="mt-2 line-clamp-3 text-sm leading-5 text-white">{row.value}</p>
+    </RecordCard>
   );
 }

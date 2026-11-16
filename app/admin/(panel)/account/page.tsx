@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { PasswordFields } from "@/components/admin/PasswordFields";
-import { AdminTitle } from "@/components/admin/ui";
+import { EditDrawer } from "@/components/admin/drawer";
+import { PageHeading, ReadOnlyField, ReadOnlyGrid, RecordCard } from "@/components/admin/fields";
 import { changePassword } from "@/lib/admin/actions";
 import { requireAdmin } from "@/lib/admin/guard";
 
@@ -16,13 +17,21 @@ async function Account() {
   const session = await requireAdmin();
   return (
     <>
-      <AdminTitle title="Account" lede="This password is for the admin area only." />
-      <p className="mb-6 text-sm text-white">
-        Signed in as <span className="text-sun">{session.email}</span>
-      </p>
-      <div className="max-w-md rounded-2xl border border-white/10 bg-card p-5">
-        <PasswordFields action={changePassword} submitLabel="Update password" />
-      </div>
+      <PageHeading
+        title="Account"
+        lede="This password is for the admin area only."
+        action={
+          <EditDrawer title="Change password">
+            <PasswordFields action={changePassword} submitLabel="Update password" />
+          </EditDrawer>
+        }
+      />
+      <RecordCard>
+        <ReadOnlyGrid>
+          <ReadOnlyField label="Email" value={session.email} />
+          <ReadOnlyField label="Password" value="Hidden" />
+        </ReadOnlyGrid>
+      </RecordCard>
     </>
   );
 }
