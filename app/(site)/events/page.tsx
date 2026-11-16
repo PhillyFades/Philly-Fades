@@ -2,7 +2,7 @@ import Image from "next/image";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { EventsHashRedirect } from "@/components/EventsHashRedirect";
-import { InstagramEmbed, InstagramScript } from "@/components/InstagramEmbed";
+import { InstagramEmbed } from "@/components/InstagramEmbed";
 import { Button, Container, Eyebrow, Gold, Section } from "@/components/ui";
 import { eventPartners, eventTypes } from "@/content/events";
 import { requestPath } from "@/content/requests";
@@ -84,7 +84,7 @@ export default async function EventsPage({
         <div className="mt-10 grid gap-6 lg:grid-cols-3">
           {past.map((item) => (
             <article key={item.id} className="overflow-hidden rounded-2xl border border-white/10 bg-card">
-              {item.instagramUrl ? <InstagramEmbed url={item.instagramUrl} /> : null}
+              {item.instagramUrl ? <InstagramEmbed url={item.instagramUrl} caption={item.title} /> : null}
               <div className="p-5">
                 <h3 className="font-display text-2xl leading-none">{item.title}</h3>
                 <p className="mt-3 text-sm text-white">{item.eventDate}</p>
@@ -99,7 +99,6 @@ export default async function EventsPage({
             </article>
           ))}
         </div>
-        <InstagramScript />
       </Section>
 
       <Section>
